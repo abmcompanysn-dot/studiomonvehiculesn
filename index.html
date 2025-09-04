@@ -1596,7 +1596,7 @@
             setTimeout(() => generateQRCode(), 100);
         }
 
-        // Fonction pour dessiner un placeholder d'image
+        // Fonction pour dessiner un placeholder d'image avec effet 3D
         function drawImagePlaceholder(ctx, template, format, canvas) {
             const formatInfo = formats[currentFormat];
             const isVertical = formatInfo.alignment === 'vertical' || formatInfo.alignment === 'portrait';
@@ -1628,22 +1628,89 @@
                 placeholderY = (canvas.height - placeholderHeight) / 2;
             }
 
-            // Fond du placeholder
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.fillRect(placeholderX, placeholderY, placeholderWidth, placeholderHeight);
+            // EFFET 3D : Ombre portée du placeholder
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 8;
+            ctx.shadowOffsetY = 12;
+
+            // Fond du placeholder avec dégradé 3D
+            const placeholderGradient = ctx.createLinearGradient(placeholderX, placeholderY, placeholderX, placeholderY + placeholderHeight);
+            placeholderGradient.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+            placeholderGradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.25)');
+            placeholderGradient.addColorStop(0.9, 'rgba(255, 255, 255, 0.1)');
+            placeholderGradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)');
             
-            // Bordure
-            ctx.strokeStyle = template.borderColor;
-            ctx.lineWidth = 2;
-            ctx.setLineDash([10, 5]);
-            ctx.strokeRect(placeholderX, placeholderY, placeholderWidth, placeholderHeight);
+            ctx.fillStyle = placeholderGradient;
+            const borderRadius = 20;
+            ctx.beginPath();
+            ctx.moveTo(placeholderX + borderRadius, placeholderY);
+            ctx.lineTo(placeholderX + placeholderWidth - borderRadius, placeholderY);
+            ctx.quadraticCurveTo(placeholderX + placeholderWidth, placeholderY, placeholderX + placeholderWidth, placeholderY + borderRadius);
+            ctx.lineTo(placeholderX + placeholderWidth, placeholderY + placeholderHeight - borderRadius);
+            ctx.quadraticCurveTo(placeholderX + placeholderWidth, placeholderY + placeholderHeight, placeholderX + placeholderWidth - borderRadius, placeholderY + placeholderHeight);
+            ctx.lineTo(placeholderX + borderRadius, placeholderY + placeholderHeight);
+            ctx.quadraticCurveTo(placeholderX, placeholderY + placeholderHeight, placeholderX, placeholderY + placeholderHeight - borderRadius);
+            ctx.lineTo(placeholderX, placeholderY + borderRadius);
+            ctx.quadraticCurveTo(placeholderX, placeholderY, placeholderX + borderRadius, placeholderY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+            
+            // Bordure avec dégradé métallique
+            const borderGradient = ctx.createLinearGradient(placeholderX, placeholderY, placeholderX + placeholderWidth, placeholderY + placeholderHeight);
+            borderGradient.addColorStop(0, template.borderColor);
+            borderGradient.addColorStop(0.3, '#ffffff60');
+            borderGradient.addColorStop(0.7, template.borderColor);
+            borderGradient.addColorStop(1, '#00000030');
+            
+            ctx.strokeStyle = borderGradient;
+            ctx.lineWidth = 3;
+            ctx.setLineDash([15, 8]);
+            ctx.beginPath();
+            ctx.moveTo(placeholderX + borderRadius, placeholderY);
+            ctx.lineTo(placeholderX + placeholderWidth - borderRadius, placeholderY);
+            ctx.quadraticCurveTo(placeholderX + placeholderWidth, placeholderY, placeholderX + placeholderWidth, placeholderY + borderRadius);
+            ctx.lineTo(placeholderX + placeholderWidth, placeholderY + placeholderHeight - borderRadius);
+            ctx.quadraticCurveTo(placeholderX + placeholderWidth, placeholderY + placeholderHeight, placeholderX + placeholderWidth - borderRadius, placeholderY + placeholderHeight);
+            ctx.lineTo(placeholderX + borderRadius, placeholderY + placeholderHeight);
+            ctx.quadraticCurveTo(placeholderX, placeholderY + placeholderHeight, placeholderX, placeholderY + placeholderHeight - borderRadius);
+            ctx.lineTo(placeholderX, placeholderY + borderRadius);
+            ctx.quadraticCurveTo(placeholderX, placeholderY, placeholderX + borderRadius, placeholderY);
+            ctx.closePath();
+            ctx.stroke();
             ctx.setLineDash([]);
+
+            // Reflet lumineux en haut
+            const reflectGradient = ctx.createLinearGradient(placeholderX, placeholderY, placeholderX, placeholderY + placeholderHeight * 0.3);
+            reflectGradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+            reflectGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
             
-            // Texte du placeholder
-            ctx.font = `${Math.min(placeholderWidth / 15, 32)}px Inter, Arial`;
+            ctx.beginPath();
+            ctx.moveTo(placeholderX + borderRadius, placeholderY);
+            ctx.lineTo(placeholderX + placeholderWidth - borderRadius, placeholderY);
+            ctx.quadraticCurveTo(placeholderX + placeholderWidth, placeholderY, placeholderX + placeholderWidth, placeholderY + borderRadius);
+            ctx.lineTo(placeholderX + placeholderWidth, placeholderY + placeholderHeight * 0.3);
+            ctx.lineTo(placeholderX, placeholderY + placeholderHeight * 0.3);
+            ctx.lineTo(placeholderX, placeholderY + borderRadius);
+            ctx.quadraticCurveTo(placeholderX, placeholderY, placeholderX + borderRadius, placeholderY);
+            ctx.closePath();
+            ctx.fillStyle = reflectGradient;
+            ctx.fill();
+            
+            // Texte du placeholder avec ombre
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 3;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 2;
+            
+            ctx.font = `bold ${Math.min(placeholderWidth / 15, 32)}px Inter, Arial`;
             ctx.fillStyle = template.textColor;
             ctx.textAlign = 'center';
             ctx.fillText('📷 Ajoutez vos photos', placeholderX + placeholderWidth/2, placeholderY + placeholderHeight/2);
+            ctx.restore();
         }
 
         // Fonction pour dessiner l'image du véhicule selon le layout
@@ -1718,9 +1785,18 @@
                 }
             }
 
-            // Dessiner l'image avec bordures arrondies
+            // EFFET 3D : Ombre portée profonde
+            const shadowOffset = Math.min(drawWidth * 0.02, 15);
+            const shadowBlur = Math.min(drawWidth * 0.03, 25);
+            
             ctx.save();
-            const borderRadius = 15;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = shadowBlur;
+            ctx.shadowOffsetX = shadowOffset;
+            ctx.shadowOffsetY = shadowOffset * 1.5;
+
+            // Dessiner l'image avec bordures arrondies et effet 3D
+            const borderRadius = 20;
             ctx.beginPath();
             ctx.moveTo(drawX + borderRadius, drawY);
             ctx.lineTo(drawX + drawWidth - borderRadius, drawY);
@@ -1733,12 +1809,21 @@
             ctx.quadraticCurveTo(drawX, drawY, drawX + borderRadius, drawY);
             ctx.closePath();
             ctx.clip();
+            
+            // Dessiner l'image
             ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
             ctx.restore();
 
-            // Bordure décorative
-            ctx.strokeStyle = template.borderColor;
-            ctx.lineWidth = 3;
+            // EFFET 3D : Bordure avec dégradé métallique
+            ctx.save();
+            const borderGradient = ctx.createLinearGradient(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
+            borderGradient.addColorStop(0, template.borderColor);
+            borderGradient.addColorStop(0.3, '#ffffff80');
+            borderGradient.addColorStop(0.7, template.borderColor);
+            borderGradient.addColorStop(1, '#00000040');
+            
+            ctx.strokeStyle = borderGradient;
+            ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(drawX + borderRadius, drawY);
             ctx.lineTo(drawX + drawWidth - borderRadius, drawY);
@@ -1751,6 +1836,24 @@
             ctx.quadraticCurveTo(drawX, drawY, drawX + borderRadius, drawY);
             ctx.closePath();
             ctx.stroke();
+
+            // EFFET 3D : Reflet lumineux en haut
+            const reflectGradient = ctx.createLinearGradient(drawX, drawY, drawX, drawY + drawHeight * 0.3);
+            reflectGradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
+            reflectGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.beginPath();
+            ctx.moveTo(drawX + borderRadius, drawY);
+            ctx.lineTo(drawX + drawWidth - borderRadius, drawY);
+            ctx.quadraticCurveTo(drawX + drawWidth, drawY, drawX + drawWidth, drawY + borderRadius);
+            ctx.lineTo(drawX + drawWidth, drawY + drawHeight * 0.3);
+            ctx.lineTo(drawX, drawY + drawHeight * 0.3);
+            ctx.lineTo(drawX, drawY + borderRadius);
+            ctx.quadraticCurveTo(drawX, drawY, drawX + borderRadius, drawY);
+            ctx.closePath();
+            ctx.fillStyle = reflectGradient;
+            ctx.fill();
+            ctx.restore();
 
             // Overlay pour le texte - adaptatif selon format
             if (template.layout !== 'classic' && template.layout !== 'premium') {
@@ -1840,7 +1943,7 @@
             ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
         }
 
-        // Fonction pour dessiner les informations du véhicule
+        // Fonction pour dessiner les informations du véhicule avec effet 3D
         function drawVehicleInfo(ctx, template, format, canvas) {
             // Récupérer TOUTES les valeurs des champs
             const marque = getFieldValue('marque') || document.getElementById('marque').value || 'BMW';
@@ -1871,43 +1974,19 @@
                 if (isBanner) {
                     baseY = canvas.height - 180;
                     const infoHeight = 150;
-                    const gradient = ctx.createLinearGradient(0, canvas.height - infoHeight, 0, canvas.height);
-                    gradient.addColorStop(0, template.overlayColor.replace('0.85)', '0.7)').replace('0.9)', '0.7)'));
-                    gradient.addColorStop(1, template.overlayColor);
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, infoHeight);
-                    ctx.fillStyle = template.accentColor;
-                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, 3);
+                    drawInfoPanel3D(ctx, template, 0, canvas.height - infoHeight, canvas.width, infoHeight);
                 } else if (isVertical) {
                     baseY = canvas.height - 420;
                     const infoHeight = 380;
-                    const gradient = ctx.createLinearGradient(0, canvas.height - infoHeight, 0, canvas.height);
-                    gradient.addColorStop(0, template.overlayColor.replace('0.85)', '0.7)').replace('0.9)', '0.7)'));
-                    gradient.addColorStop(1, template.overlayColor);
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, infoHeight);
-                    ctx.fillStyle = template.accentColor;
-                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, 3);
+                    drawInfoPanel3D(ctx, template, 0, canvas.height - infoHeight, canvas.width, infoHeight);
                 } else if (formatInfo.category === 'Print') {
                     baseY = canvas.height - 600;
                     const infoHeight = 550;
-                    const gradient = ctx.createLinearGradient(0, canvas.height - infoHeight, 0, canvas.height);
-                    gradient.addColorStop(0, template.overlayColor.replace('0.85)', '0.7)').replace('0.9)', '0.7)'));
-                    gradient.addColorStop(1, template.overlayColor);
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, infoHeight);
-                    ctx.fillStyle = template.accentColor;
-                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, 3);
+                    drawInfoPanel3D(ctx, template, 0, canvas.height - infoHeight, canvas.width, infoHeight);
                 } else {
                     baseY = canvas.height - 240;
                     const infoHeight = 210;
-                    const gradient = ctx.createLinearGradient(0, canvas.height - infoHeight, 0, canvas.height);
-                    gradient.addColorStop(0, template.overlayColor.replace('0.85)', '0.7)').replace('0.9)', '0.7)'));
-                    gradient.addColorStop(1, template.overlayColor);
-                    ctx.fillStyle = gradient;
-                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, infoHeight);
-                    ctx.fillStyle = template.accentColor;
-                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, 3);
+                    drawInfoPanel3D(ctx, template, 0, canvas.height - infoHeight, canvas.width, infoHeight);
                 }
             } else {
                 if (isBanner) {
@@ -1938,6 +2017,62 @@
             if (citation) {
                 drawElegantQuote(ctx, template, config, citation, auteurCitation, styleCitation, leftMargin, rightMargin, centerX, detailsEndY + config.spacing * 2, canvas);
             }
+        }
+
+        // Fonction pour dessiner un panneau d'informations avec effet 3D
+        function drawInfoPanel3D(ctx, template, x, y, width, height) {
+            ctx.save();
+            
+            // EFFET 3D : Ombre portée du panneau
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 8;
+            
+            // Fond du panneau avec dégradé 3D
+            const panelGradient = ctx.createLinearGradient(x, y, x, y + height);
+            const baseColor = template.overlayColor.replace('0.85)', '0.8)').replace('0.9)', '0.8)');
+            const darkColor = template.overlayColor.replace('0.85)', '0.95)').replace('0.9)', '0.95)');
+            panelGradient.addColorStop(0, baseColor);
+            panelGradient.addColorStop(0.1, 'rgba(255, 255, 255, 0.1)');
+            panelGradient.addColorStop(0.9, baseColor);
+            panelGradient.addColorStop(1, darkColor);
+            
+            ctx.fillStyle = panelGradient;
+            ctx.fillRect(x, y, width, height);
+            
+            ctx.restore();
+            
+            // Bordure supérieure avec effet lumineux
+            const topGradient = ctx.createLinearGradient(x, y, x + width, y);
+            topGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+            topGradient.addColorStop(0.5, template.accentColor);
+            topGradient.addColorStop(1, 'rgba(255, 255, 255, 0.1)');
+            
+            ctx.fillStyle = topGradient;
+            ctx.fillRect(x, y, width, 4);
+            
+            // Reflet lumineux en haut du panneau
+            const reflectGradient = ctx.createLinearGradient(x, y, x, y + height * 0.2);
+            reflectGradient.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+            reflectGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.fillStyle = reflectGradient;
+            ctx.fillRect(x, y, width, height * 0.2);
+            
+            // Bordure latérale avec effet de profondeur
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + height);
+            ctx.stroke();
+            
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(x + width - 1, y);
+            ctx.lineTo(x + width - 1, y + height);
+            ctx.stroke();
         }
 
         // Configuration des layouts par template et format
@@ -3218,5 +3353,5 @@
             setTimeout(generatePreview, 300);
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'979e44a1e3cac79d',t:'MTc1Njk5NzEwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97a0a0cdc5b2c79d',t:'MTc1NzAyMTg0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
