@@ -1,0 +1,3222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Fiches Véhicules Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(120, 119, 198, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 50%, #c7d2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+        }
+
+        .form-section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+            backdrop-filter: blur(10px);
+            padding: 35px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+
+        .form-section h2 {
+            color: #1e293b;
+            margin-bottom: 30px;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 1px solid rgba(203, 213, 225, 0.6);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 
+                0 0 0 3px rgba(102, 126, 234, 0.1),
+                0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.95rem;
+            letter-spacing: -0.01em;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            font-size: 1.05rem;
+            box-shadow: 
+                0 4px 15px rgba(102, 126, 234, 0.4),
+                0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-upload-label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .file-upload-label:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a5acd 100%);
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 25px rgba(102, 126, 234, 0.5),
+                0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .file-upload-label:hover::before {
+            left: 100%;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .template-selector {
+            margin-bottom: 30px;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .template-btn {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(203, 213, 225, 0.6);
+            border-radius: 16px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .template-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 
+                0 4px 15px rgba(102, 126, 234, 0.4),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .template-btn:hover:not(.active) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #667eea;
+        }
+
+        .template-preview {
+            width: 100%;
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .garage-pro-preview {
+            background: linear-gradient(135deg, #1c1c1c 0%, #2e2e2e 100%);
+            border: 1px solid #ffd700;
+            position: relative;
+        }
+
+        .garage-pro-preview::after {
+            content: '🏪';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .auto-elite-preview {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            border: 1px solid #d4af37;
+            position: relative;
+        }
+
+        .auto-elite-preview::after {
+            content: '🏆';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .motors-luxury-preview {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border: 1px solid #c9b037;
+            position: relative;
+        }
+
+        .motors-luxury-preview::after {
+            content: '✨';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .speed-center-preview {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            border: 1px solid #ffffff;
+            position: relative;
+        }
+
+        .speed-center-preview::after {
+            content: '🏁';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .classic-auto-preview {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border: 1px solid #3498db;
+            position: relative;
+        }
+
+        .classic-auto-preview::after {
+            content: '🚗';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .urban-motors-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 1px solid #ffffff;
+            position: relative;
+        }
+
+        .urban-motors-preview::after {
+            content: '🌆';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
+        .format-selector {
+            margin-bottom: 25px;
+        }
+
+        .format-category {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .format-btn {
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(203, 213, 225, 0.6);
+            border-radius: 16px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .format-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .format-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 
+                0 4px 15px rgba(102, 126, 234, 0.4),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .format-btn.active::before {
+            opacity: 1;
+        }
+
+        .format-btn:hover:not(.active) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #667eea;
+        }
+
+        .format-btn small {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .canvas-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        #previewCanvas {
+            max-width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a5acd 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.5);
+        }
+
+        .uploaded-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .uploaded-image {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .uploaded-image:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .uploaded-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .uploaded-image:hover img {
+            transform: scale(1.05);
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .remove-image:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: scale(1.1);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(248, 250, 252, 0.1) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .format-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Générateur de Fiches Véhicules Pro</h1>
+            <p>Créez des fiches professionnelles avec photos, QR code et branding pour vos réseaux sociaux</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h2>📋 Informations du Véhicule</h2>
+                
+                <div class="form-group">
+                    <label for="marque">Marque</label>
+                    <select id="marque" onchange="updateModels()">
+                        <option value="">Sélectionner une marque</option>
+                        <option value="Audi">Audi</option>
+                        <option value="BMW">BMW</option>
+                        <option value="Mercedes-Benz">Mercedes-Benz</option>
+                        <option value="Volkswagen">Volkswagen</option>
+                        <option value="Toyota">Toyota</option>
+                        <option value="Honda">Honda</option>
+                        <option value="Nissan">Nissan</option>
+                        <option value="Ford">Ford</option>
+                        <option value="Peugeot">Peugeot</option>
+                        <option value="Renault">Renault</option>
+                        <option value="Citroën">Citroën</option>
+                        <option value="Hyundai">Hyundai</option>
+                        <option value="Kia">Kia</option>
+                        <option value="Mazda">Mazda</option>
+                        <option value="Subaru">Subaru</option>
+                        <option value="Lexus">Lexus</option>
+                        <option value="Infiniti">Infiniti</option>
+                        <option value="Acura">Acura</option>
+                        <option value="Volvo">Volvo</option>
+                        <option value="Jaguar">Jaguar</option>
+                        <option value="Land Rover">Land Rover</option>
+                        <option value="Porsche">Porsche</option>
+                        <option value="Ferrari">Ferrari</option>
+                        <option value="Lamborghini">Lamborghini</option>
+                        <option value="Bentley">Bentley</option>
+                        <option value="Rolls-Royce">Rolls-Royce</option>
+                        <option value="Maserati">Maserati</option>
+                        <option value="Aston Martin">Aston Martin</option>
+                        <option value="McLaren">McLaren</option>
+                        <option value="Tesla">Tesla</option>
+                        <option value="custom">✏️ Saisir manuellement</option>
+                    </select>
+                    <input type="text" id="marqueCustom" placeholder="Saisir la marque..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="modele">Modèle</label>
+                    <select id="modele">
+                        <option value="">Sélectionner d'abord une marque</option>
+                        <option value="custom">✏️ Saisir manuellement</option>
+                    </select>
+                    <input type="text" id="modeleCustom" placeholder="Saisir le modèle..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="annee">Année</label>
+                    <select id="annee">
+                        <option value="">Sélectionner l'année</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                        <option value="2017">2017</option>
+                        <option value="2016">2016</option>
+                        <option value="2015">2015</option>
+                        <option value="2014">2014</option>
+                        <option value="2013">2013</option>
+                        <option value="2012">2012</option>
+                        <option value="2011">2011</option>
+                        <option value="2010">2010</option>
+                        <option value="2009">2009</option>
+                        <option value="2008">2008</option>
+                        <option value="2007">2007</option>
+                        <option value="2006">2006</option>
+                        <option value="2005">2005</option>
+                        <option value="custom">✏️ Autre année</option>
+                    </select>
+                    <input type="number" id="anneeCustom" placeholder="Saisir l'année..." min="1950" max="2025" style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="prix">Prix</label>
+                    <input type="text" id="prix" placeholder="25 000 €, 15 000 000 FCFA...">
+                </div>
+
+                <div class="form-group">
+                    <label for="kilometrage">Kilométrage</label>
+                    <select id="kilometrage">
+                        <option value="">Sélectionner le kilométrage</option>
+                        <option value="0 km (Neuf)">0 km (Neuf)</option>
+                        <option value="Moins de 5 000 km">Moins de 5 000 km</option>
+                        <option value="5 000 - 10 000 km">5 000 - 10 000 km</option>
+                        <option value="10 000 - 20 000 km">10 000 - 20 000 km</option>
+                        <option value="20 000 - 30 000 km">20 000 - 30 000 km</option>
+                        <option value="30 000 - 50 000 km">30 000 - 50 000 km</option>
+                        <option value="50 000 - 80 000 km">50 000 - 80 000 km</option>
+                        <option value="80 000 - 100 000 km">80 000 - 100 000 km</option>
+                        <option value="100 000 - 150 000 km">100 000 - 150 000 km</option>
+                        <option value="150 000 - 200 000 km">150 000 - 200 000 km</option>
+                        <option value="Plus de 200 000 km">Plus de 200 000 km</option>
+                        <option value="custom">✏️ Saisir manuellement</option>
+                    </select>
+                    <input type="text" id="kilometrageCustom" placeholder="Ex: 75 500 km, 120 000 miles..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="carburant">Carburant</label>
+                    <select id="carburant">
+                        <option value="">Sélectionner le carburant</option>
+                        <option value="Essence">⛽ Essence</option>
+                        <option value="Diesel">🛢️ Diesel</option>
+                        <option value="Hybride">🔋 Hybride</option>
+                        <option value="Hybride rechargeable">🔌 Hybride rechargeable</option>
+                        <option value="Électrique">⚡ Électrique</option>
+                        <option value="GPL">🔥 GPL</option>
+                        <option value="GNV">💨 GNV (Gaz naturel)</option>
+                        <option value="Éthanol E85">🌱 Éthanol E85</option>
+                        <option value="custom">✏️ Autre carburant</option>
+                    </select>
+                    <input type="text" id="carburantCustom" placeholder="Saisir le type de carburant..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="transmission">Transmission</label>
+                    <select id="transmission">
+                        <option value="">Sélectionner la transmission</option>
+                        <option value="Manuelle">⚙️ Manuelle</option>
+                        <option value="Automatique">🔄 Automatique</option>
+                        <option value="Semi-automatique">⚡ Semi-automatique</option>
+                        <option value="CVT">🔧 CVT (Variation continue)</option>
+                        <option value="Robotisée">🤖 Robotisée</option>
+                        <option value="custom">✏️ Autre transmission</option>
+                    </select>
+                    <input type="text" id="transmissionCustom" placeholder="Saisir le type de transmission..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="couleur">Couleur</label>
+                    <select id="couleur">
+                        <option value="">Sélectionner la couleur</option>
+                        <option value="Noir">⚫ Noir</option>
+                        <option value="Blanc">⚪ Blanc</option>
+                        <option value="Gris">🔘 Gris</option>
+                        <option value="Argent">✨ Argent</option>
+                        <option value="Rouge">🔴 Rouge</option>
+                        <option value="Bleu">🔵 Bleu</option>
+                        <option value="Vert">🟢 Vert</option>
+                        <option value="Jaune">🟡 Jaune</option>
+                        <option value="Orange">🟠 Orange</option>
+                        <option value="Marron">🟤 Marron</option>
+                        <option value="Beige">🟫 Beige</option>
+                        <option value="Violet">🟣 Violet</option>
+                        <option value="Rose">🩷 Rose</option>
+                        <option value="Noir métallisé">⚫ Noir métallisé</option>
+                        <option value="Blanc nacré">⚪ Blanc nacré</option>
+                        <option value="Gris métallisé">🔘 Gris métallisé</option>
+                        <option value="Rouge métallisé">🔴 Rouge métallisé</option>
+                        <option value="Bleu métallisé">🔵 Bleu métallisé</option>
+                        <option value="custom">✏️ Autre couleur</option>
+                    </select>
+                    <input type="text" id="couleurCustom" placeholder="Saisir la couleur..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="localisation">Localisation</label>
+                    <select id="localisation">
+                        <option value="">Sélectionner la localisation</option>
+                        <optgroup label="🇸🇳 Sénégal">
+                            <option value="Dakar">Dakar</option>
+                            <option value="Thiès">Thiès</option>
+                            <option value="Saint-Louis">Saint-Louis</option>
+                            <option value="Kaolack">Kaolack</option>
+                            <option value="Ziguinchor">Ziguinchor</option>
+                            <option value="Diourbel">Diourbel</option>
+                            <option value="Tambacounda">Tambacounda</option>
+                            <option value="Mbour">Mbour</option>
+                            <option value="Rufisque">Rufisque</option>
+                        </optgroup>
+                        <optgroup label="🇫🇷 France">
+                            <option value="Paris">Paris</option>
+                            <option value="Lyon">Lyon</option>
+                            <option value="Marseille">Marseille</option>
+                            <option value="Toulouse">Toulouse</option>
+                            <option value="Nice">Nice</option>
+                            <option value="Nantes">Nantes</option>
+                            <option value="Strasbourg">Strasbourg</option>
+                            <option value="Montpellier">Montpellier</option>
+                            <option value="Bordeaux">Bordeaux</option>
+                            <option value="Lille">Lille</option>
+                        </optgroup>
+                        <optgroup label="🇲🇦 Maroc">
+                            <option value="Casablanca">Casablanca</option>
+                            <option value="Rabat">Rabat</option>
+                            <option value="Marrakech">Marrakech</option>
+                            <option value="Fès">Fès</option>
+                            <option value="Tanger">Tanger</option>
+                            <option value="Agadir">Agadir</option>
+                            <option value="Meknès">Meknès</option>
+                            <option value="Oujda">Oujda</option>
+                        </optgroup>
+                        <optgroup label="🇨🇮 Côte d'Ivoire">
+                            <option value="Abidjan">Abidjan</option>
+                            <option value="Yamoussoukro">Yamoussoukro</option>
+                            <option value="Bouaké">Bouaké</option>
+                            <option value="Daloa">Daloa</option>
+                            <option value="San-Pédro">San-Pédro</option>
+                        </optgroup>
+                        <option value="custom">✏️ Autre ville</option>
+                    </select>
+                    <input type="text" id="localisationCustom" placeholder="Saisir la ville..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="etat">État du véhicule</label>
+                    <select id="etat">
+                        <option value="">Sélectionner l'état</option>
+                        <option value="Neuf">✨ Neuf</option>
+                        <option value="Comme neuf">🌟 Comme neuf</option>
+                        <option value="Excellent">⭐ Excellent</option>
+                        <option value="Très bon">👍 Très bon</option>
+                        <option value="Bon">👌 Bon</option>
+                        <option value="Correct">✅ Correct</option>
+                        <option value="À rénover">🔧 À rénover</option>
+                        <option value="Accidenté">⚠️ Accidenté</option>
+                        <option value="custom">✏️ Autre état</option>
+                    </select>
+                    <input type="text" id="etatCustom" placeholder="Décrire l'état..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <div class="form-group">
+                    <label for="proprietaires">Nombre de propriétaires</label>
+                    <select id="proprietaires">
+                        <option value="">Sélectionner</option>
+                        <option value="1ère main">👤 1ère main</option>
+                        <option value="2ème main">👥 2ème main</option>
+                        <option value="3ème main">👥 3ème main</option>
+                        <option value="4ème main">👥 4ème main</option>
+                        <option value="5ème main ou plus">👥 5ème main ou plus</option>
+                        <option value="Nombre inconnu">❓ Nombre inconnu</option>
+                        <option value="custom">✏️ Préciser</option>
+                    </select>
+                    <input type="text" id="proprietairesCustom" placeholder="Préciser le nombre..." style="display: none; margin-top: 10px;">
+                </div>
+
+                <h2 style="margin-top: 30px;">📸 Photos du Véhicule</h2>
+                
+                <div class="form-group">
+                    <div class="file-upload">
+                        <input type="file" id="vehicleImages" multiple accept="image/*">
+                        <label for="vehicleImages" class="file-upload-label">
+                            📷 Sélectionner les photos du véhicule
+                        </label>
+                    </div>
+                    <div id="uploadedImages" class="uploaded-images"></div>
+                </div>
+
+                <h2 style="margin-top: 30px;">🏷️ Branding & Contact</h2>
+                
+                <div class="form-group">
+                    <label for="logoFile">Logo de l'entreprise</label>
+                    <div class="file-upload">
+                        <input type="file" id="logoFile" accept="image/*">
+                        <label for="logoFile" class="file-upload-label">
+                            🖼️ Sélectionner votre logo
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="nomEntreprise">Nom de l'entreprise</label>
+                    <input type="text" id="nomEntreprise" placeholder="MonGarageSN, AutoPro, Elite Motors...">
+                </div>
+
+                <div class="form-group">
+                    <label for="slogan">Slogan de l'entreprise</label>
+                    <input type="text" id="slogan" placeholder="Sécurité, Confiance & Élégance">
+                </div>
+
+                <div class="form-group">
+                    <label for="telephone">Téléphone</label>
+                    <input type="text" id="telephone" placeholder="+221 77 123 45 67, 01 23 45 67 89...">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="contact@mongarage.sn">
+                </div>
+
+                <div class="form-group">
+                    <label for="adresse">Adresse</label>
+                    <input type="text" id="adresse" placeholder="123 Avenue Bourguiba, Dakar">
+                </div>
+
+                <div class="form-group">
+                    <label for="siteWeb">Site web</label>
+                    <input type="url" id="siteWeb" placeholder="https://www.mongarage.sn">
+                </div>
+
+                <div class="form-group">
+                    <label for="whatsapp">WhatsApp (optionnel)</label>
+                    <input type="text" id="whatsapp" placeholder="+221 77 123 45 67">
+                </div>
+
+                <div class="form-group">
+                    <label for="qrUrl">Lien pour le QR Code</label>
+                    <input type="url" id="qrUrl" placeholder="https://votre-site.fr/vehicule/123">
+                </div>
+
+                <h2 style="margin-top: 30px;">💬 Citation Élégante</h2>
+                
+                <div class="form-group">
+                    <label for="citation">Citation ou slogan du véhicule</label>
+                    <textarea id="citation" rows="3" placeholder="&quot;L'élégance à l'état pur&quot; - &quot;Performance et raffinement&quot; - &quot;Votre nouveau compagnon de route&quot;"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="auteurCitation">Auteur de la citation (optionnel)</label>
+                    <input type="text" id="auteurCitation" placeholder="Expert Auto, Garage Premium, Votre Nom...">
+                </div>
+
+                <div class="form-group">
+                    <label for="styleCitation">Style de la citation</label>
+                    <select id="styleCitation">
+                        <option value="elegant">✨ Élégant (italique avec guillemets)</option>
+                        <option value="moderne">🎯 Moderne (encadré stylé)</option>
+                        <option value="luxe">💎 Luxe (fond doré avec bordure)</option>
+                        <option value="sport">🏁 Sport (dynamique avec effet)</option>
+                        <option value="classique">📜 Classique (traditionnel)</option>
+                        <option value="minimal">⚪ Minimal (simple et épuré)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>OU importer votre QR Code</label>
+                    <div class="file-upload">
+                        <input type="file" id="qrCodeFile" accept="image/*">
+                        <label for="qrCodeFile" class="file-upload-label">
+                            📱 Importer un QR Code existant
+                        </label>
+                    </div>
+                    <div id="qrPreview" style="margin-top: 10px; text-align: center;"></div>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <h2>🎨 Aperçu et Génération</h2>
+                
+                <div class="template-selector">
+                    <h3 style="margin-bottom: 15px; color: #1e293b; font-size: 1.2rem;">🎭 Templates Luxueux</h3>
+                    <div class="template-grid">
+                        <div class="template-btn active" data-template="garage-pro">
+                            <div class="template-preview garage-pro-preview"></div>
+                            <span>Garage Pro</span>
+                        </div>
+                        <div class="template-btn" data-template="auto-elite">
+                            <div class="template-preview auto-elite-preview"></div>
+                            <span>Auto Elite</span>
+                        </div>
+                        <div class="template-btn" data-template="motors-luxury">
+                            <div class="template-preview motors-luxury-preview"></div>
+                            <span>Motors Luxury</span>
+                        </div>
+                        <div class="template-btn" data-template="speed-center">
+                            <div class="template-preview speed-center-preview"></div>
+                            <span>Speed Center</span>
+                        </div>
+                        <div class="template-btn" data-template="classic-auto">
+                            <div class="template-preview classic-auto-preview"></div>
+                            <span>Classic Auto</span>
+                        </div>
+                        <div class="template-btn" data-template="urban-motors">
+                            <div class="template-preview urban-motors-preview"></div>
+                            <span>Urban Motors</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="format-selector">
+                    <h3 style="margin-bottom: 15px; color: #1e293b; font-size: 1.2rem;">📱 Formats Réseaux Sociaux</h3>
+                    
+                    <!-- Instagram -->
+                    <div class="format-category">
+                        <h4 style="color: #E4405F; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            📷 Instagram
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn active" data-format="instagram">
+                                📱 Post<br><small>1080x1080</small>
+                            </div>
+                            <div class="format-btn" data-format="story">
+                                📲 Story<br><small>1080x1920</small>
+                            </div>
+                            <div class="format-btn" data-format="reel">
+                                🎬 Reel<br><small>1080x1920</small>
+                            </div>
+                            <div class="format-btn" data-format="carousel">
+                                🎠 Carousel<br><small>1080x1080</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Facebook -->
+                    <div class="format-category">
+                        <h4 style="color: #1877F2; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            📘 Facebook
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn" data-format="facebook">
+                                📘 Post<br><small>1200x630</small>
+                            </div>
+                            <div class="format-btn" data-format="fbstory">
+                                📲 Story<br><small>1080x1920</small>
+                            </div>
+                            <div class="format-btn" data-format="fbcover">
+                                🖼️ Cover<br><small>1640x859</small>
+                            </div>
+                            <div class="format-btn" data-format="fbevent">
+                                🎉 Event<br><small>1920x1080</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TikTok -->
+                    <div class="format-category">
+                        <h4 style="color: #000000; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            🎵 TikTok
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn" data-format="tiktok">
+                                🎵 Video<br><small>1080x1920</small>
+                            </div>
+                            <div class="format-btn" data-format="tiktokad">
+                                💰 Ads<br><small>1080x1920</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- YouTube -->
+                    <div class="format-category">
+                        <h4 style="color: #FF0000; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            📺 YouTube
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn" data-format="youtube">
+                                📺 Thumbnail<br><small>1280x720</small>
+                            </div>
+                            <div class="format-btn" data-format="youtubeshort">
+                                📱 Shorts<br><small>1080x1920</small>
+                            </div>
+                            <div class="format-btn" data-format="youtubebanner">
+                                🖼️ Banner<br><small>2560x1440</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LinkedIn -->
+                    <div class="format-category">
+                        <h4 style="color: #0A66C2; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            💼 LinkedIn
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn" data-format="linkedin">
+                                💼 Post<br><small>1200x627</small>
+                            </div>
+                            <div class="format-btn" data-format="linkedinstory">
+                                📲 Story<br><small>1080x1920</small>
+                            </div>
+                            <div class="format-btn" data-format="linkedinbanner">
+                                🖼️ Banner<br><small>1584x396</small>
+                            </div>
+                            <div class="format-btn" data-format="linkedincompany">
+                                🏢 Company<br><small>1536x768</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Twitter/X -->
+                    <div class="format-category">
+                        <h4 style="color: #1DA1F2; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            🐦 Twitter/X
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn" data-format="twitter">
+                                🐦 Post<br><small>1200x675</small>
+                            </div>
+                            <div class="format-btn" data-format="twitterheader">
+                                🖼️ Header<br><small>1500x500</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pinterest -->
+                    <div class="format-category">
+                        <h4 style="color: #E60023; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            📌 Pinterest
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn" data-format="pinterest">
+                                📌 Pin<br><small>1000x1500</small>
+                            </div>
+                            <div class="format-btn" data-format="pinterestwide">
+                                ⬜ Square<br><small>1000x1000</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Autres plateformes -->
+                    <div class="format-category">
+                        <h4 style="color: #25D366; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            💬 Messagerie
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn" data-format="whatsapp">
+                                💬 WhatsApp<br><small>1080x1080</small>
+                            </div>
+                            <div class="format-btn" data-format="whatsappstory">
+                                📲 WA Story<br><small>1080x1920</small>
+                            </div>
+                            <div class="format-btn" data-format="snapchat">
+                                👻 Snapchat<br><small>1080x1920</small>
+                            </div>
+                            <div class="format-btn" data-format="telegram">
+                                ✈️ Telegram<br><small>1280x720</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Web & Print -->
+                    <div class="format-category">
+                        <h4 style="color: #6B7280; margin: 15px 0 10px 0; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                            🖨️ Web & Print
+                        </h4>
+                        <div class="format-grid">
+                            <div class="format-btn" data-format="web">
+                                🌐 Web<br><small>1920x1080</small>
+                            </div>
+                            <div class="format-btn" data-format="print">
+                                📄 A4<br><small>2480x3508</small>
+                            </div>
+                            <div class="format-btn" data-format="flyer">
+                                📋 A5<br><small>1748x2480</small>
+                            </div>
+                            <div class="format-btn" data-format="poster">
+                                📊 A3<br><small>3508x4961</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="previewCanvas" width="1080" height="1080"></canvas>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="generatePreview()">
+                        🔄 Actualiser l'aperçu
+                    </button>
+                    <button class="btn btn-success" onclick="downloadCurrent()">
+                        💾 Télécharger cette fiche
+                    </button>
+                    <button class="btn btn-info" onclick="downloadAllFormats()">
+                        📦 Télécharger tous les formats
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="imageCount">0</div>
+                        <div class="stat-label">Photos chargées</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="formatCount">28</div>
+                        <div class="stat-label">Formats disponibles</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalFiches">0</div>
+                        <div class="stat-label">Fiches à générer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedImages = [];
+        let logoImage = null;
+        let qrCodeImage = null;
+        let currentFormat = 'instagram';
+        let currentImageIndex = 0;
+        let currentTemplate = 'garage-pro';
+
+        const formats = {
+            // Instagram
+            instagram: { width: 1080, height: 1080, name: 'Instagram Post', category: 'Instagram', alignment: 'centered' },
+            story: { width: 1080, height: 1920, name: 'Instagram Story', category: 'Instagram', alignment: 'vertical' },
+            reel: { width: 1080, height: 1920, name: 'Instagram Reel', category: 'Instagram', alignment: 'vertical' },
+            carousel: { width: 1080, height: 1080, name: 'Instagram Carousel', category: 'Instagram', alignment: 'grid' },
+            
+            // Facebook
+            facebook: { width: 1200, height: 630, name: 'Facebook Post', category: 'Facebook', alignment: 'landscape' },
+            fbstory: { width: 1080, height: 1920, name: 'Facebook Story', category: 'Facebook', alignment: 'vertical' },
+            fbcover: { width: 1640, height: 859, name: 'Facebook Cover', category: 'Facebook', alignment: 'banner' },
+            fbevent: { width: 1920, height: 1080, name: 'Facebook Event', category: 'Facebook', alignment: 'landscape' },
+            
+            // TikTok
+            tiktok: { width: 1080, height: 1920, name: 'TikTok Video', category: 'TikTok', alignment: 'vertical' },
+            tiktokad: { width: 1080, height: 1920, name: 'TikTok Ads', category: 'TikTok', alignment: 'vertical' },
+            
+            // YouTube
+            youtube: { width: 1280, height: 720, name: 'YouTube Thumbnail', category: 'YouTube', alignment: 'landscape' },
+            youtubeshort: { width: 1080, height: 1920, name: 'YouTube Shorts', category: 'YouTube', alignment: 'vertical' },
+            youtubebanner: { width: 2560, height: 1440, name: 'YouTube Banner', category: 'YouTube', alignment: 'banner' },
+            
+            // LinkedIn
+            linkedin: { width: 1200, height: 627, name: 'LinkedIn Post', category: 'LinkedIn', alignment: 'landscape' },
+            linkedinstory: { width: 1080, height: 1920, name: 'LinkedIn Story', category: 'LinkedIn', alignment: 'vertical' },
+            linkedinbanner: { width: 1584, height: 396, name: 'LinkedIn Banner', category: 'LinkedIn', alignment: 'banner' },
+            linkedincompany: { width: 1536, height: 768, name: 'LinkedIn Company', category: 'LinkedIn', alignment: 'landscape' },
+            
+            // Twitter/X
+            twitter: { width: 1200, height: 675, name: 'Twitter/X Post', category: 'Twitter', alignment: 'landscape' },
+            twitterheader: { width: 1500, height: 500, name: 'Twitter/X Header', category: 'Twitter', alignment: 'banner' },
+            
+            // Pinterest
+            pinterest: { width: 1000, height: 1500, name: 'Pinterest Pin', category: 'Pinterest', alignment: 'portrait' },
+            pinterestwide: { width: 1000, height: 1000, name: 'Pinterest Square', category: 'Pinterest', alignment: 'centered' },
+            
+            // Snapchat
+            snapchat: { width: 1080, height: 1920, name: 'Snapchat Story', category: 'Snapchat', alignment: 'vertical' },
+            snapchatad: { width: 1080, height: 1920, name: 'Snapchat Ads', category: 'Snapchat', alignment: 'vertical' },
+            
+            // WhatsApp
+            whatsapp: { width: 1080, height: 1080, name: 'WhatsApp Status', category: 'WhatsApp', alignment: 'centered' },
+            whatsappstory: { width: 1080, height: 1920, name: 'WhatsApp Story', category: 'WhatsApp', alignment: 'vertical' },
+            
+            // Telegram
+            telegram: { width: 1280, height: 720, name: 'Telegram Post', category: 'Telegram', alignment: 'landscape' },
+            telegramstory: { width: 1080, height: 1920, name: 'Telegram Story', category: 'Telegram', alignment: 'vertical' },
+            
+            // Web & Print
+            web: { width: 1920, height: 1080, name: 'Web Banner', category: 'Web', alignment: 'banner' },
+            print: { width: 2480, height: 3508, name: 'Print A4', category: 'Print', alignment: 'portrait' },
+            flyer: { width: 1748, height: 2480, name: 'Flyer A5', category: 'Print', alignment: 'portrait' },
+            poster: { width: 3508, height: 4961, name: 'Poster A3', category: 'Print', alignment: 'portrait' }
+        };
+
+        const templates = {
+            'garage-pro': {
+                name: 'Garage Pro',
+                layout: 'classic',
+                background: 'linear-gradient(135deg, #1c1c1c 0%, #2e2e2e 100%)',
+                overlayColor: 'rgba(16,16,16,0.85)',
+                textColor: '#ffffff',
+                accentColor: '#ffd700',
+                priceColor: '#ffd700',
+                borderColor: '#ffd700',
+                headerStyle: 'modern',
+                footerText: '© 2025 MonGarageSN – Sécurité, Confiance & Élégance'
+            },
+            'auto-elite': {
+                name: 'Auto Elite',
+                layout: 'premium',
+                background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%)',
+                overlayColor: 'rgba(15,15,35,0.9)',
+                textColor: '#ffffff',
+                accentColor: '#d4af37',
+                priceColor: '#ffd700',
+                borderColor: '#d4af37',
+                headerStyle: 'elegant',
+                footerText: '🏆 AUTO ELITE - Excellence & Prestige'
+            },
+            'motors-luxury': {
+                name: 'Motors Luxury',
+                layout: 'luxury',
+                background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+                overlayColor: 'rgba(26,26,26,0.9)',
+                textColor: '#ffffff',
+                accentColor: '#c9b037',
+                priceColor: '#ffd700',
+                borderColor: '#c9b037',
+                headerStyle: 'luxury',
+                footerText: '✨ MOTORS LUXURY - Votre Partenaire Premium'
+            },
+            'speed-center': {
+                name: 'Speed Center',
+                layout: 'sport',
+                background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
+                overlayColor: 'rgba(255,107,53,0.85)',
+                textColor: '#ffffff',
+                accentColor: '#ffffff',
+                priceColor: '#ffff00',
+                borderColor: '#ffffff',
+                headerStyle: 'sport',
+                footerText: '🏁 SPEED CENTER - Performance & Passion'
+            },
+            'classic-auto': {
+                name: 'Classic Auto',
+                layout: 'classic',
+                background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+                overlayColor: 'rgba(44,62,80,0.9)',
+                textColor: '#ffffff',
+                accentColor: '#3498db',
+                priceColor: '#2ecc71',
+                borderColor: '#3498db',
+                headerStyle: 'classic',
+                footerText: '🚗 CLASSIC AUTO - Tradition & Qualité'
+            },
+            'urban-motors': {
+                name: 'Urban Motors',
+                layout: 'modern',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                overlayColor: 'rgba(102,126,234,0.85)',
+                textColor: '#ffffff',
+                accentColor: '#ffffff',
+                priceColor: '#ffff00',
+                borderColor: '#ffffff',
+                headerStyle: 'modern',
+                footerText: '🌆 URBAN MOTORS - Style & Innovation'
+            }
+        };
+
+        // Gestion des templates
+        document.querySelectorAll('.template-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTemplate = btn.dataset.template;
+                generatePreview();
+            });
+        });
+
+        // Gestion des formats
+        document.querySelectorAll('.format-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFormat = btn.dataset.format;
+                updateCanvasSize();
+                generatePreview();
+            });
+        });
+
+        // Gestion des images du véhicule
+        document.getElementById('vehicleImages').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            uploadedImages.push({
+                                src: e.target.result,
+                                img: img,
+                                name: file.name
+                            });
+                            updateImageDisplay();
+                            updateStats();
+                            if (uploadedImages.length === 1) {
+                                generatePreview();
+                            }
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        // Gestion du logo
+        document.getElementById('logoFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoImage = new Image();
+                    logoImage.onload = function() {
+                        generatePreview();
+                    };
+                    logoImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Gestion du QR Code importé
+        document.getElementById('qrCodeFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    qrCodeImage = new Image();
+                    qrCodeImage.onload = function() {
+                        // Afficher l'aperçu du QR code importé
+                        const preview = document.getElementById('qrPreview');
+                        preview.innerHTML = `
+                            <div style="display: inline-block; position: relative;">
+                                <img src="${e.target.result}" style="width: 80px; height: 80px; border: 2px solid #667eea; border-radius: 8px;">
+                                <button onclick="removeQRCode()" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px;">×</button>
+                            </div>
+                            <p style="margin-top: 8px; font-size: 12px; color: #64748b;">QR Code importé</p>
+                        `;
+                        // Vider le champ URL quand on importe un QR code
+                        document.getElementById('qrUrl').value = '';
+                        generatePreview();
+                    };
+                    qrCodeImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Mise à jour de l'affichage des images
+        function updateImageDisplay() {
+            const container = document.getElementById('uploadedImages');
+            container.innerHTML = '';
+            
+            uploadedImages.forEach((imageData, index) => {
+                const div = document.createElement('div');
+                div.className = 'uploaded-image';
+                div.innerHTML = `
+                    <img src="${imageData.src}" alt="Image ${index + 1}">
+                    <button class="remove-image" onclick="removeImage(${index})">×</button>
+                `;
+                div.addEventListener('click', () => {
+                    currentImageIndex = index;
+                    generatePreview();
+                });
+                container.appendChild(div);
+            });
+        }
+
+        // Supprimer une image
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            if (currentImageIndex >= uploadedImages.length) {
+                currentImageIndex = Math.max(0, uploadedImages.length - 1);
+            }
+            updateImageDisplay();
+            updateStats();
+            if (uploadedImages.length > 0) {
+                generatePreview();
+            }
+        }
+
+        // Supprimer le QR Code importé
+        function removeQRCode() {
+            qrCodeImage = null;
+            document.getElementById('qrPreview').innerHTML = '';
+            document.getElementById('qrCodeFile').value = '';
+            generatePreview();
+        }
+
+        // Mise à jour des statistiques
+        function updateStats() {
+            document.getElementById('imageCount').textContent = uploadedImages.length;
+            const totalFormats = Object.keys(formats).length;
+            const totalTemplates = Object.keys(templates).length;
+            document.getElementById('formatCount').textContent = totalFormats;
+            document.getElementById('totalFiches').textContent = uploadedImages.length * totalFormats * totalTemplates;
+        }
+
+        // Mise à jour de la taille du canvas
+        function updateCanvasSize() {
+            const canvas = document.getElementById('previewCanvas');
+            const format = formats[currentFormat];
+            canvas.width = format.width;
+            canvas.height = format.height;
+        }
+
+        // Génération de l'aperçu - SYNCHRONISÉE ET CORRIGÉE
+        function generatePreview() {
+            const canvas = document.getElementById('previewCanvas');
+            const ctx = canvas.getContext('2d');
+            const format = formats[currentFormat];
+            const template = templates[currentTemplate];
+
+            // Vider complètement le canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Appliquer le fond du template
+            applyTemplateBackground(ctx, template, canvas.width, canvas.height);
+
+            // Dessiner l'en-tête avec le nom du garage
+            drawHeader(ctx, template, format, canvas);
+
+            // Dessiner le logo avec style du template
+            if (logoImage) {
+                drawLogo(ctx, logoImage, template, format, canvas);
+            }
+
+            // Si pas d'images, afficher un aperçu avec texte seulement
+            if (uploadedImages.length === 0) {
+                // Dessiner un placeholder pour l'image
+                drawImagePlaceholder(ctx, template, format, canvas);
+            } else {
+                // Dessiner l'image du véhicule selon le layout
+                const currentImage = uploadedImages[currentImageIndex];
+                if (currentImage && currentImage.img) {
+                    drawVehicleImage(ctx, currentImage.img, template, format, canvas);
+                }
+            }
+
+            // TOUJOURS dessiner les informations du véhicule selon le layout
+            drawVehicleInfo(ctx, template, format, canvas);
+
+            // Dessiner le pied de page
+            drawFooter(ctx, template, format, canvas);
+
+            // QR Code en dernier
+            setTimeout(() => generateQRCode(), 100);
+        }
+
+        // Fonction pour dessiner un placeholder d'image
+        function drawImagePlaceholder(ctx, template, format, canvas) {
+            const formatInfo = formats[currentFormat];
+            const isVertical = formatInfo.alignment === 'vertical' || formatInfo.alignment === 'portrait';
+            const isBanner = formatInfo.alignment === 'banner';
+            
+            let placeholderWidth, placeholderHeight, placeholderX, placeholderY;
+            
+            if (template.layout === 'classic' || template.layout === 'premium') {
+                if (isVertical) {
+                    placeholderWidth = canvas.width * 0.9;
+                    placeholderHeight = canvas.height * 0.55;
+                    placeholderX = (canvas.width - placeholderWidth) / 2;
+                    placeholderY = 120;
+                } else if (isBanner) {
+                    placeholderWidth = canvas.width * 0.85;
+                    placeholderHeight = canvas.height * 0.7;
+                    placeholderX = (canvas.width - placeholderWidth) / 2;
+                    placeholderY = 60;
+                } else {
+                    placeholderWidth = canvas.width * 0.9;
+                    placeholderHeight = canvas.height * 0.6;
+                    placeholderX = (canvas.width - placeholderWidth) / 2;
+                    placeholderY = 80;
+                }
+            } else {
+                placeholderWidth = canvas.width * 0.8;
+                placeholderHeight = canvas.height * 0.5;
+                placeholderX = (canvas.width - placeholderWidth) / 2;
+                placeholderY = (canvas.height - placeholderHeight) / 2;
+            }
+
+            // Fond du placeholder
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(placeholderX, placeholderY, placeholderWidth, placeholderHeight);
+            
+            // Bordure
+            ctx.strokeStyle = template.borderColor;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.strokeRect(placeholderX, placeholderY, placeholderWidth, placeholderHeight);
+            ctx.setLineDash([]);
+            
+            // Texte du placeholder
+            ctx.font = `${Math.min(placeholderWidth / 15, 32)}px Inter, Arial`;
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'center';
+            ctx.fillText('📷 Ajoutez vos photos', placeholderX + placeholderWidth/2, placeholderY + placeholderHeight/2);
+        }
+
+        // Fonction pour dessiner l'image du véhicule selon le layout
+        function drawVehicleImage(ctx, img, template, format, canvas) {
+            const imgAspect = img.width / img.height;
+            let drawWidth, drawHeight, drawX, drawY;
+
+            const formatInfo = formats[currentFormat];
+            const isVertical = formatInfo.alignment === 'vertical' || formatInfo.alignment === 'portrait';
+            const isBanner = formatInfo.alignment === 'banner';
+            
+            if (template.layout === 'classic' || template.layout === 'premium') {
+                // Image centrée avec overlay en bas - adaptatif selon format
+                if (isVertical) {
+                    const maxHeight = canvas.height * 0.55;
+                    if (imgAspect > canvas.width / maxHeight) {
+                        drawWidth = canvas.width * 0.9;
+                        drawHeight = drawWidth / imgAspect;
+                    } else {
+                        drawHeight = maxHeight;
+                        drawWidth = maxHeight * imgAspect;
+                    }
+                    drawX = (canvas.width - drawWidth) / 2;
+                    drawY = 120;
+                } else if (isBanner) {
+                    const maxHeight = canvas.height * 0.7;
+                    if (imgAspect > canvas.width / maxHeight) {
+                        drawWidth = canvas.width * 0.85;
+                        drawHeight = drawWidth / imgAspect;
+                    } else {
+                        drawHeight = maxHeight;
+                        drawWidth = maxHeight * imgAspect;
+                    }
+                    drawX = (canvas.width - drawWidth) / 2;
+                    drawY = 60;
+                } else if (formatInfo.category === 'Print') {
+                    const maxHeight = canvas.height * 0.65;
+                    if (imgAspect > canvas.width / maxHeight) {
+                        drawWidth = canvas.width * 0.85;
+                        drawHeight = drawWidth / imgAspect;
+                    } else {
+                        drawHeight = maxHeight;
+                        drawWidth = maxHeight * imgAspect;
+                    }
+                    drawX = (canvas.width - drawWidth) / 2;
+                    drawY = 100;
+                } else {
+                    const maxHeight = canvas.height * 0.6;
+                    if (imgAspect > canvas.width / maxHeight) {
+                        drawWidth = canvas.width * 0.9;
+                        drawHeight = drawWidth / imgAspect;
+                    } else {
+                        drawHeight = maxHeight;
+                        drawWidth = maxHeight * imgAspect;
+                    }
+                    drawX = (canvas.width - drawWidth) / 2;
+                    drawY = 80;
+                }
+            } else {
+                // Autres layouts - plein écran avec overlay adaptatif
+                const canvasAspect = canvas.width / canvas.height;
+                if (imgAspect > canvasAspect) {
+                    drawWidth = canvas.width;
+                    drawHeight = canvas.width / imgAspect;
+                    drawX = 0;
+                    drawY = (canvas.height - drawHeight) / 2;
+                } else {
+                    drawHeight = canvas.height;
+                    drawWidth = canvas.height * imgAspect;
+                    drawX = (canvas.width - drawWidth) / 2;
+                    drawY = 0;
+                }
+            }
+
+            // Dessiner l'image avec bordures arrondies
+            ctx.save();
+            const borderRadius = 15;
+            ctx.beginPath();
+            ctx.moveTo(drawX + borderRadius, drawY);
+            ctx.lineTo(drawX + drawWidth - borderRadius, drawY);
+            ctx.quadraticCurveTo(drawX + drawWidth, drawY, drawX + drawWidth, drawY + borderRadius);
+            ctx.lineTo(drawX + drawWidth, drawY + drawHeight - borderRadius);
+            ctx.quadraticCurveTo(drawX + drawWidth, drawY + drawHeight, drawX + drawWidth - borderRadius, drawY + drawHeight);
+            ctx.lineTo(drawX + borderRadius, drawY + drawHeight);
+            ctx.quadraticCurveTo(drawX, drawY + drawHeight, drawX, drawY + drawHeight - borderRadius);
+            ctx.lineTo(drawX, drawY + borderRadius);
+            ctx.quadraticCurveTo(drawX, drawY, drawX + borderRadius, drawY);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+            ctx.restore();
+
+            // Bordure décorative
+            ctx.strokeStyle = template.borderColor;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(drawX + borderRadius, drawY);
+            ctx.lineTo(drawX + drawWidth - borderRadius, drawY);
+            ctx.quadraticCurveTo(drawX + drawWidth, drawY, drawX + drawWidth, drawY + borderRadius);
+            ctx.lineTo(drawX + drawWidth, drawY + drawHeight - borderRadius);
+            ctx.quadraticCurveTo(drawX + drawWidth, drawY + drawHeight, drawX + drawWidth - borderRadius, drawY + drawHeight);
+            ctx.lineTo(drawX + borderRadius, drawY + drawHeight);
+            ctx.quadraticCurveTo(drawX, drawY + drawHeight, drawX, drawY + drawHeight - borderRadius);
+            ctx.lineTo(drawX, drawY + borderRadius);
+            ctx.quadraticCurveTo(drawX, drawY, drawX + borderRadius, drawY);
+            ctx.closePath();
+            ctx.stroke();
+
+            // Overlay pour le texte - adaptatif selon format
+            if (template.layout !== 'classic' && template.layout !== 'premium') {
+                let overlayHeight;
+                if (isVertical) {
+                    overlayHeight = 400;
+                } else if (isBanner) {
+                    overlayHeight = 180;
+                } else if (formatInfo.category === 'Print') {
+                    overlayHeight = 600;
+                } else {
+                    overlayHeight = 200;
+                }
+                
+                const overlayY = canvas.height - overlayHeight;
+                const gradient = ctx.createLinearGradient(0, overlayY, 0, canvas.height);
+                const overlayBase = template.overlayColor.replace('0.85)', '0.2)').replace('0.9)', '0.2)');
+                gradient.addColorStop(0, overlayBase);
+                gradient.addColorStop(1, template.overlayColor);
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, overlayY, canvas.width, overlayHeight);
+            }
+        }
+
+        // Fonction pour dessiner l'en-tête
+        function drawHeader(ctx, template, format, canvas) {
+            const garageName = document.getElementById('nomEntreprise').value || 'AutoPro Sénégal';
+            
+            const formatInfo = formats[currentFormat];
+            const isVertical = formatInfo.alignment === 'vertical' || formatInfo.alignment === 'portrait';
+            const isBanner = formatInfo.alignment === 'banner';
+            const isPrint = formatInfo.category === 'Print';
+            
+            let headerFontSize, headerY, headerHeight;
+            
+            if (isPrint) {
+                headerFontSize = '64px';
+                headerY = 80;
+                headerHeight = 100;
+            } else if (isVertical) {
+                headerFontSize = '42px';
+                headerY = 50;
+                headerHeight = 70;
+            } else if (isBanner) {
+                headerFontSize = '36px';
+                headerY = 45;
+                headerHeight = 60;
+            } else if (formatInfo.width > 1500) {
+                headerFontSize = '48px';
+                headerY = 60;
+                headerHeight = 80;
+            } else {
+                headerFontSize = '32px';
+                headerY = 40;
+                headerHeight = 70;
+            }
+            
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'left';
+            ctx.font = `bold ${headerFontSize} Arial`;
+            
+            // Fond pour l'en-tête si layout classic/premium
+            if (template.layout === 'classic' || template.layout === 'premium') {
+                ctx.fillStyle = template.overlayColor;
+                ctx.fillRect(0, 0, canvas.width, headerHeight);
+                ctx.fillStyle = template.textColor;
+            }
+            
+            ctx.fillText(garageName, 30, headerY);
+        }
+
+        // Fonction pour dessiner le logo
+        function drawLogo(ctx, logoImage, template, format, canvas) {
+            const logoSize = Math.min(canvas.width * 0.12, 100);
+            const logoX = canvas.width - logoSize - 20;
+            const logoY = 15;
+            
+            // Fond avec couleur du template
+            ctx.fillStyle = 'rgba(255,255,255,0.95)';
+            ctx.fillRect(logoX - 8, logoY - 8, logoSize + 16, logoSize + 16);
+            
+            // Bordure avec couleur d'accent
+            ctx.strokeStyle = template.borderColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(logoX - 8, logoY - 8, logoSize + 16, logoSize + 16);
+            
+            ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
+        }
+
+        // Fonction pour dessiner les informations du véhicule
+        function drawVehicleInfo(ctx, template, format, canvas) {
+            // Récupérer TOUTES les valeurs des champs
+            const marque = getFieldValue('marque') || document.getElementById('marque').value || 'BMW';
+            const modele = getFieldValue('modele') || document.getElementById('modele').value || 'X5';
+            const annee = getFieldValue('annee') || document.getElementById('annee').value || '2023';
+            const prix = document.getElementById('prix').value || '45 000 €';
+            const kilometrage = getFieldValue('kilometrage') || document.getElementById('kilometrage').value || '25 000 km';
+            const carburant = getFieldValue('carburant') || document.getElementById('carburant').value || 'Diesel';
+            const transmission = getFieldValue('transmission') || document.getElementById('transmission').value || 'Automatique';
+            const couleur = getFieldValue('couleur') || document.getElementById('couleur').value || 'Noir';
+            const localisation = getFieldValue('localisation') || document.getElementById('localisation').value || 'Dakar';
+            const etat = getFieldValue('etat') || document.getElementById('etat').value || 'Excellent';
+            const proprietaires = getFieldValue('proprietaires') || document.getElementById('proprietaires').value || '1ère main';
+            const citation = document.getElementById('citation').value || '';
+            const auteurCitation = document.getElementById('auteurCitation').value || '';
+            const styleCitation = document.getElementById('styleCitation').value || 'elegant';
+
+            // Configuration selon le template et format
+            const config = getLayoutConfig(template, currentFormat);
+            
+            let baseY, leftMargin, rightMargin, centerX;
+            const formatInfo = formats[currentFormat];
+            const isVertical = formatInfo.alignment === 'vertical' || formatInfo.alignment === 'portrait';
+            const isBanner = formatInfo.alignment === 'banner';
+            
+            // Calcul adaptatif de la position selon le format
+            if (template.layout === 'classic' || template.layout === 'premium') {
+                if (isBanner) {
+                    baseY = canvas.height - 180;
+                    const infoHeight = 150;
+                    const gradient = ctx.createLinearGradient(0, canvas.height - infoHeight, 0, canvas.height);
+                    gradient.addColorStop(0, template.overlayColor.replace('0.85)', '0.7)').replace('0.9)', '0.7)'));
+                    gradient.addColorStop(1, template.overlayColor);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, infoHeight);
+                    ctx.fillStyle = template.accentColor;
+                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, 3);
+                } else if (isVertical) {
+                    baseY = canvas.height - 420;
+                    const infoHeight = 380;
+                    const gradient = ctx.createLinearGradient(0, canvas.height - infoHeight, 0, canvas.height);
+                    gradient.addColorStop(0, template.overlayColor.replace('0.85)', '0.7)').replace('0.9)', '0.7)'));
+                    gradient.addColorStop(1, template.overlayColor);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, infoHeight);
+                    ctx.fillStyle = template.accentColor;
+                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, 3);
+                } else if (formatInfo.category === 'Print') {
+                    baseY = canvas.height - 600;
+                    const infoHeight = 550;
+                    const gradient = ctx.createLinearGradient(0, canvas.height - infoHeight, 0, canvas.height);
+                    gradient.addColorStop(0, template.overlayColor.replace('0.85)', '0.7)').replace('0.9)', '0.7)'));
+                    gradient.addColorStop(1, template.overlayColor);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, infoHeight);
+                    ctx.fillStyle = template.accentColor;
+                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, 3);
+                } else {
+                    baseY = canvas.height - 240;
+                    const infoHeight = 210;
+                    const gradient = ctx.createLinearGradient(0, canvas.height - infoHeight, 0, canvas.height);
+                    gradient.addColorStop(0, template.overlayColor.replace('0.85)', '0.7)').replace('0.9)', '0.7)'));
+                    gradient.addColorStop(1, template.overlayColor);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, infoHeight);
+                    ctx.fillStyle = template.accentColor;
+                    ctx.fillRect(0, canvas.height - infoHeight, canvas.width, 3);
+                }
+            } else {
+                if (isBanner) {
+                    baseY = canvas.height - 180;
+                } else if (isVertical) {
+                    baseY = canvas.height - 420;
+                } else if (formatInfo.category === 'Print') {
+                    baseY = canvas.height - 600;
+                } else {
+                    baseY = canvas.height - 240;
+                }
+            }
+            
+            leftMargin = config.margins.left;
+            rightMargin = canvas.width - config.margins.right;
+            centerX = canvas.width / 2;
+
+            // Titre principal avec style selon template
+            drawVehicleTitle(ctx, template, config, `${marque} ${modele}`, leftMargin, baseY);
+
+            // Informations organisées selon le layout du template
+            const detailsEndY = drawVehicleDetails(ctx, template, config, {
+                annee, carburant, transmission, kilometrage, couleur, 
+                etat, proprietaires, localisation, prix
+            }, leftMargin, rightMargin, centerX, baseY);
+
+            // Citation élégante si présente
+            if (citation) {
+                drawElegantQuote(ctx, template, config, citation, auteurCitation, styleCitation, leftMargin, rightMargin, centerX, detailsEndY + config.spacing * 2, canvas);
+            }
+        }
+
+        // Configuration des layouts par template et format
+        function getLayoutConfig(template, format) {
+            const formatInfo = formats[format];
+            const alignment = formatInfo.alignment;
+            const isVertical = alignment === 'vertical' || alignment === 'portrait';
+            const isBanner = alignment === 'banner';
+            const isLandscape = alignment === 'landscape';
+            const isCentered = alignment === 'centered';
+            const isGrid = alignment === 'grid';
+            
+            // Configuration de base selon le type de format
+            let baseConfig = {
+                titleSize: 40,
+                textSize: 22,
+                smallTextSize: 18,
+                priceSize: 38,
+                lineHeight: 35,
+                spacing: 18,
+                margins: { left: 40, right: 40 }
+            };
+
+            // Ajustements selon l'alignement du format
+            if (isVertical) {
+                baseConfig = {
+                    titleSize: 52,
+                    textSize: 28,
+                    smallTextSize: 24,
+                    priceSize: 48,
+                    lineHeight: 45,
+                    spacing: 25,
+                    margins: { left: 50, right: 50 }
+                };
+            } else if (isBanner) {
+                baseConfig = {
+                    titleSize: 48,
+                    textSize: 24,
+                    smallTextSize: 20,
+                    priceSize: 42,
+                    lineHeight: 38,
+                    spacing: 20,
+                    margins: { left: 60, right: 60 }
+                };
+            } else if (formatInfo.category === 'Print') {
+                baseConfig = {
+                    titleSize: 72,
+                    textSize: 36,
+                    smallTextSize: 28,
+                    priceSize: 64,
+                    lineHeight: 55,
+                    spacing: 35,
+                    margins: { left: 80, right: 80 }
+                };
+            } else if (formatInfo.width > 1500) {
+                // Formats très larges (YouTube Banner, etc.)
+                baseConfig = {
+                    titleSize: 56,
+                    textSize: 32,
+                    smallTextSize: 26,
+                    priceSize: 52,
+                    lineHeight: 48,
+                    spacing: 28,
+                    margins: { left: 80, right: 80 }
+                };
+            }
+
+            switch(template.name) {
+                case 'Garage Pro':
+                    return {
+                        ...baseConfig,
+                        layout: 'grid',
+                        columns: 2,
+                        alignment: 'left',
+                        spacing: 22
+                    };
+                case 'Auto Elite':
+                    return {
+                        ...baseConfig,
+                        layout: 'centered',
+                        alignment: 'center',
+                        margins: { left: 60, right: 60 },
+                        spacing: 25
+                    };
+                case 'Motors Luxury':
+                    return {
+                        ...baseConfig,
+                        layout: 'asymmetric',
+                        alignment: 'mixed',
+                        margins: { left: 50, right: 50 },
+                        spacing: 24
+                    };
+                case 'Speed Center':
+                    return {
+                        ...baseConfig,
+                        layout: 'dynamic',
+                        alignment: 'left',
+                        margins: { left: 35, right: 35 },
+                        spacing: 20
+                    };
+                case 'Classic Auto':
+                    return {
+                        ...baseConfig,
+                        layout: 'traditional',
+                        alignment: 'justified',
+                        margins: { left: 45, right: 45 },
+                        spacing: 22
+                    };
+                case 'Urban Motors':
+                    return {
+                        ...baseConfig,
+                        layout: 'modern',
+                        alignment: 'left',
+                        margins: { left: 40, right: 40 },
+                        spacing: 19
+                    };
+                default:
+                    return baseConfig;
+            }
+        }
+
+        // Fonction pour dessiner le titre du véhicule
+        function drawVehicleTitle(ctx, template, config, title, leftMargin, baseY) {
+            ctx.font = `bold ${config.titleSize}px Inter, Arial`;
+            ctx.fillStyle = template.textColor;
+            
+            if (config.alignment === 'center') {
+                ctx.textAlign = 'center';
+                ctx.fillText(title, leftMargin + (canvas.width - leftMargin - config.margins.right) / 2, baseY);
+            } else {
+                ctx.textAlign = 'left';
+                ctx.fillText(title, leftMargin, baseY);
+            }
+
+            // Ligne décorative selon le style du template
+            const lineY = baseY + 12;
+            const lineWidth = Math.min(title.length * (config.titleSize * 0.6), 300);
+            
+            ctx.strokeStyle = template.accentColor;
+            ctx.lineWidth = template.name === 'Motors Luxury' ? 2 : 4;
+            ctx.beginPath();
+            
+            if (config.alignment === 'center') {
+                const startX = (canvas.width - lineWidth) / 2;
+                ctx.moveTo(startX, lineY);
+                ctx.lineTo(startX + lineWidth, lineY);
+            } else {
+                ctx.moveTo(leftMargin, lineY);
+                ctx.lineTo(leftMargin + lineWidth, lineY);
+            }
+            ctx.stroke();
+
+            // Effet supplémentaire pour certains templates
+            if (template.name === 'Auto Elite' || template.name === 'Motors Luxury') {
+                ctx.strokeStyle = template.accentColor + '40';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                if (config.alignment === 'center') {
+                    const startX = (canvas.width - lineWidth) / 2;
+                    ctx.moveTo(startX, lineY + 6);
+                    ctx.lineTo(startX + lineWidth, lineY + 6);
+                } else {
+                    ctx.moveTo(leftMargin, lineY + 6);
+                    ctx.lineTo(leftMargin + lineWidth, lineY + 6);
+                }
+                ctx.stroke();
+            }
+        }
+
+        // Fonction pour dessiner les détails du véhicule
+        function drawVehicleDetails(ctx, template, config, data, leftMargin, rightMargin, centerX, baseY) {
+            const startY = baseY + config.spacing * 2;
+            let currentY = startY;
+
+            // Organisation des informations selon le layout
+            switch(config.layout) {
+                case 'grid':
+                    currentY = drawGridLayout(ctx, template, config, data, leftMargin, rightMargin, currentY);
+                    break;
+                case 'centered':
+                    currentY = drawCenteredLayout(ctx, template, config, data, centerX, currentY);
+                    break;
+                case 'asymmetric':
+                    currentY = drawAsymmetricLayout(ctx, template, config, data, leftMargin, rightMargin, currentY);
+                    break;
+                case 'dynamic':
+                    currentY = drawDynamicLayout(ctx, template, config, data, leftMargin, rightMargin, currentY);
+                    break;
+                case 'traditional':
+                    currentY = drawTraditionalLayout(ctx, template, config, data, leftMargin, rightMargin, currentY);
+                    break;
+                case 'modern':
+                    currentY = drawModernLayout(ctx, template, config, data, leftMargin, rightMargin, currentY);
+                    break;
+                default:
+                    currentY = drawGridLayout(ctx, template, config, data, leftMargin, rightMargin, currentY);
+            }
+
+            // Prix en évidence
+            drawPriceHighlight(ctx, template, config, data.prix, leftMargin, rightMargin, currentY + config.spacing);
+        }
+
+        // Fonction pour dessiner une citation élégante
+        function drawElegantQuote(ctx, template, config, citation, auteur, style, leftMargin, rightMargin, centerX, startY, canvas) {
+            const formatInfo = formats[currentFormat];
+            const isVertical = formatInfo.alignment === 'vertical' || formatInfo.alignment === 'portrait';
+            const isBanner = formatInfo.alignment === 'banner';
+            const isPrint = formatInfo.category === 'Print';
+            
+            // Tailles adaptatives selon le format
+            let quoteFontSize, authorFontSize, padding, maxWidth;
+            
+            if (isPrint) {
+                quoteFontSize = 32;
+                authorFontSize = 24;
+                padding = 40;
+                maxWidth = rightMargin - leftMargin - 160;
+            } else if (isVertical) {
+                quoteFontSize = 24;
+                authorFontSize = 18;
+                padding = 30;
+                maxWidth = rightMargin - leftMargin - 100;
+            } else if (isBanner) {
+                quoteFontSize = 20;
+                authorFontSize = 16;
+                padding = 25;
+                maxWidth = rightMargin - leftMargin - 80;
+            } else if (formatInfo.width > 1500) {
+                quoteFontSize = 28;
+                authorFontSize = 20;
+                padding = 35;
+                maxWidth = rightMargin - leftMargin - 120;
+            } else {
+                quoteFontSize = 18;
+                authorFontSize = 14;
+                padding = 20;
+                maxWidth = rightMargin - leftMargin - 60;
+            }
+
+            // Mesurer le texte pour calculer la hauteur nécessaire
+            ctx.font = `italic ${quoteFontSize}px "Georgia", serif`;
+            const words = citation.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && currentLine) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    currentLine = testLine;
+                }
+            });
+            if (currentLine) lines.push(currentLine);
+
+            const lineHeight = quoteFontSize * 1.4;
+            const totalTextHeight = lines.length * lineHeight;
+            const authorHeight = auteur ? authorFontSize * 1.2 : 0;
+            const totalHeight = totalTextHeight + authorHeight + padding * 2;
+
+            // Position de la citation
+            const quoteX = centerX - maxWidth / 2;
+            const quoteY = startY;
+
+            // Dessiner selon le style choisi
+            switch(style) {
+                case 'elegant':
+                    drawElegantStyle(ctx, template, quoteX, quoteY, maxWidth, totalHeight, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding);
+                    break;
+                case 'moderne':
+                    drawModernStyle(ctx, template, quoteX, quoteY, maxWidth, totalHeight, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding);
+                    break;
+                case 'luxe':
+                    drawLuxuryStyle(ctx, template, quoteX, quoteY, maxWidth, totalHeight, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding);
+                    break;
+                case 'sport':
+                    drawSportStyle(ctx, template, quoteX, quoteY, maxWidth, totalHeight, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding);
+                    break;
+                case 'classique':
+                    drawClassicStyle(ctx, template, quoteX, quoteY, maxWidth, totalHeight, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding);
+                    break;
+                case 'minimal':
+                    drawMinimalStyle(ctx, template, quoteX, quoteY, maxWidth, totalHeight, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding);
+                    break;
+            }
+
+            return quoteY + totalHeight + 20;
+        }
+
+        // Style élégant avec guillemets
+        function drawElegantStyle(ctx, template, x, y, width, height, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding) {
+            // Fond semi-transparent
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(x - padding/2, y, width + padding, height);
+            
+            // Bordure subtile
+            ctx.strokeStyle = template.accentColor + '40';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x - padding/2, y, width + padding, height);
+            
+            // Guillemets décoratifs
+            ctx.font = `bold ${quoteFontSize * 2}px "Georgia", serif`;
+            ctx.fillStyle = template.accentColor + '60';
+            ctx.textAlign = 'left';
+            ctx.fillText('"', x - 10, y + quoteFontSize * 1.5);
+            
+            // Texte de la citation
+            ctx.font = `italic ${quoteFontSize}px "Georgia", serif`;
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'center';
+            
+            lines.forEach((line, index) => {
+                ctx.fillText(line, x + width/2, y + padding + (index + 1) * lineHeight);
+            });
+            
+            // Guillemet de fermeture
+            ctx.font = `bold ${quoteFontSize * 2}px "Georgia", serif`;
+            ctx.fillStyle = template.accentColor + '60';
+            ctx.textAlign = 'right';
+            ctx.fillText('"', x + width + 10, y + height - padding);
+            
+            // Auteur
+            if (auteur) {
+                ctx.font = `${authorFontSize}px "Georgia", serif`;
+                ctx.fillStyle = template.accentColor;
+                ctx.textAlign = 'right';
+                ctx.fillText(`— ${auteur}`, x + width, y + height - padding/2);
+            }
+        }
+
+        // Style moderne avec encadré
+        function drawModernStyle(ctx, template, x, y, width, height, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding) {
+            // Fond moderne avec dégradé
+            const gradient = ctx.createLinearGradient(x, y, x, y + height);
+            gradient.addColorStop(0, template.accentColor + '20');
+            gradient.addColorStop(1, template.accentColor + '05');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x - padding/2, y, width + padding, height);
+            
+            // Bordure moderne
+            ctx.strokeStyle = template.accentColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x - padding/2, y, width + padding, height);
+            
+            // Barre latérale
+            ctx.fillStyle = template.accentColor;
+            ctx.fillRect(x - padding/2, y, 5, height);
+            
+            // Texte
+            ctx.font = `${quoteFontSize}px "Inter", Arial`;
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'left';
+            
+            lines.forEach((line, index) => {
+                ctx.fillText(line, x, y + padding + (index + 1) * lineHeight);
+            });
+            
+            // Auteur
+            if (auteur) {
+                ctx.font = `bold ${authorFontSize}px "Inter", Arial`;
+                ctx.fillStyle = template.accentColor;
+                ctx.textAlign = 'right';
+                ctx.fillText(`— ${auteur}`, x + width, y + height - padding/2);
+            }
+        }
+
+        // Style luxe avec fond doré
+        function drawLuxuryStyle(ctx, template, x, y, width, height, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding) {
+            // Fond luxueux
+            ctx.fillStyle = 'rgba(212, 175, 55, 0.15)';
+            ctx.fillRect(x - padding/2, y, width + padding, height);
+            
+            // Bordure dorée
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x - padding/2, y, width + padding, height);
+            
+            // Coins décoratifs
+            const cornerSize = 15;
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 3;
+            // Coin haut gauche
+            ctx.beginPath();
+            ctx.moveTo(x - padding/2, y + cornerSize);
+            ctx.lineTo(x - padding/2, y);
+            ctx.lineTo(x - padding/2 + cornerSize, y);
+            ctx.stroke();
+            // Coin bas droit
+            ctx.beginPath();
+            ctx.moveTo(x + width + padding/2 - cornerSize, y + height);
+            ctx.lineTo(x + width + padding/2, y + height);
+            ctx.lineTo(x + width + padding/2, y + height - cornerSize);
+            ctx.stroke();
+            
+            // Texte
+            ctx.font = `italic ${quoteFontSize}px "Georgia", serif`;
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'center';
+            
+            lines.forEach((line, index) => {
+                ctx.fillText(line, x + width/2, y + padding + (index + 1) * lineHeight);
+            });
+            
+            // Auteur
+            if (auteur) {
+                ctx.font = `${authorFontSize}px "Georgia", serif`;
+                ctx.fillStyle = '#d4af37';
+                ctx.textAlign = 'center';
+                ctx.fillText(`— ${auteur} —`, x + width/2, y + height - padding/2);
+            }
+        }
+
+        // Style sport dynamique
+        function drawSportStyle(ctx, template, x, y, width, height, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding) {
+            // Fond dynamique
+            ctx.fillStyle = 'rgba(255, 107, 53, 0.1)';
+            ctx.fillRect(x - padding/2, y, width + padding, height);
+            
+            // Bordure dynamique avec effet
+            ctx.strokeStyle = '#ff6b35';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([10, 5]);
+            ctx.strokeRect(x - padding/2, y, width + padding, height);
+            ctx.setLineDash([]);
+            
+            // Effet de vitesse
+            ctx.strokeStyle = '#ff6b35' + '40';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                ctx.moveTo(x - padding/2 + i * 10, y + height/2);
+                ctx.lineTo(x - padding/2 + i * 10 + 20, y + height/2);
+                ctx.stroke();
+            }
+            
+            // Texte
+            ctx.font = `bold ${quoteFontSize}px "Inter", Arial`;
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'left';
+            
+            lines.forEach((line, index) => {
+                ctx.fillText(line, x, y + padding + (index + 1) * lineHeight);
+            });
+            
+            // Auteur
+            if (auteur) {
+                ctx.font = `bold ${authorFontSize}px "Inter", Arial`;
+                ctx.fillStyle = '#ff6b35';
+                ctx.textAlign = 'right';
+                ctx.fillText(`— ${auteur}`, x + width, y + height - padding/2);
+            }
+        }
+
+        // Style classique traditionnel
+        function drawClassicStyle(ctx, template, x, y, width, height, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding) {
+            // Fond classique
+            ctx.fillStyle = 'rgba(44, 62, 80, 0.1)';
+            ctx.fillRect(x - padding/2, y, width + padding, height);
+            
+            // Bordure classique
+            ctx.strokeStyle = template.accentColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x - padding/2, y, width + padding, height);
+            
+            // Ligne décorative en haut
+            ctx.strokeStyle = template.accentColor;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y + padding/2);
+            ctx.lineTo(x + width, y + padding/2);
+            ctx.stroke();
+            
+            // Texte
+            ctx.font = `${quoteFontSize}px "Times New Roman", serif`;
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'center';
+            
+            lines.forEach((line, index) => {
+                ctx.fillText(line, x + width/2, y + padding + (index + 1) * lineHeight);
+            });
+            
+            // Ligne décorative en bas
+            ctx.strokeStyle = template.accentColor;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y + height - padding/2 - (auteur ? authorFontSize * 1.5 : 0));
+            ctx.lineTo(x + width, y + height - padding/2 - (auteur ? authorFontSize * 1.5 : 0));
+            ctx.stroke();
+            
+            // Auteur
+            if (auteur) {
+                ctx.font = `italic ${authorFontSize}px "Times New Roman", serif`;
+                ctx.fillStyle = template.accentColor;
+                ctx.textAlign = 'center';
+                ctx.fillText(`— ${auteur} —`, x + width/2, y + height - padding/2);
+            }
+        }
+
+        // Style minimal épuré
+        function drawMinimalStyle(ctx, template, x, y, width, height, lines, auteur, quoteFontSize, authorFontSize, lineHeight, padding) {
+            // Pas de fond, juste le texte
+            
+            // Ligne minimaliste à gauche
+            ctx.strokeStyle = template.accentColor;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x - 20, y + padding);
+            ctx.lineTo(x - 20, y + height - padding);
+            ctx.stroke();
+            
+            // Texte
+            ctx.font = `${quoteFontSize}px "Inter", Arial`;
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'left';
+            
+            lines.forEach((line, index) => {
+                ctx.fillText(line, x, y + padding + (index + 1) * lineHeight);
+            });
+            
+            // Auteur
+            if (auteur) {
+                ctx.font = `${authorFontSize}px "Inter", Arial`;
+                ctx.fillStyle = template.accentColor;
+                ctx.textAlign = 'right';
+                ctx.fillText(`— ${auteur}`, x + width, y + height - padding/2);
+            }
+        }
+
+        // Layout en grille (Garage Pro)
+        function drawGridLayout(ctx, template, config, data, leftMargin, rightMargin, startY) {
+            const colWidth = (rightMargin - leftMargin) / 2;
+            let currentY = startY;
+
+            ctx.font = `${config.textSize}px Inter, Arial`;
+            
+            // Ligne 1: Année et Carburant
+            if (data.annee || data.carburant) {
+                ctx.fillStyle = template.accentColor;
+                ctx.textAlign = 'left';
+                if (data.annee) ctx.fillText(`📅 ${data.annee}`, leftMargin, currentY);
+                if (data.carburant) ctx.fillText(`⛽ ${data.carburant}`, leftMargin + colWidth, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // Ligne 2: Transmission et Kilométrage
+            if (data.transmission || data.kilometrage) {
+                ctx.fillStyle = template.textColor;
+                if (data.transmission) ctx.fillText(`⚙️ ${data.transmission}`, leftMargin, currentY);
+                if (data.kilometrage) ctx.fillText(`🛣️ ${data.kilometrage}`, leftMargin + colWidth, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // Ligne 3: État et Couleur
+            if (data.etat || data.couleur) {
+                ctx.fillStyle = template.accentColor;
+                if (data.etat) ctx.fillText(`✨ ${data.etat}`, leftMargin, currentY);
+                if (data.couleur) ctx.fillText(`🎨 ${data.couleur}`, leftMargin + colWidth, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // Ligne 4: Propriétaires et Localisation
+            if (data.proprietaires || data.localisation) {
+                ctx.fillStyle = template.textColor;
+                if (data.proprietaires) ctx.fillText(`👤 ${data.proprietaires}`, leftMargin, currentY);
+                if (data.localisation) ctx.fillText(`📍 ${data.localisation}`, leftMargin + colWidth, currentY);
+                currentY += config.lineHeight;
+            }
+
+            return currentY;
+        }
+
+        // Layout centré (Auto Elite)
+        function drawCenteredLayout(ctx, template, config, data, centerX, startY) {
+            let currentY = startY;
+            ctx.textAlign = 'center';
+            ctx.font = `${config.textSize}px Inter, Arial`;
+
+            // Informations principales centrées
+            const mainInfo = [];
+            if (data.annee) mainInfo.push(`📅 ${data.annee}`);
+            if (data.carburant) mainInfo.push(`⛽ ${data.carburant}`);
+            if (data.transmission) mainInfo.push(`⚙️ ${data.transmission}`);
+
+            if (mainInfo.length > 0) {
+                ctx.fillStyle = template.accentColor;
+                ctx.fillText(mainInfo.join('  •  '), centerX, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // Informations secondaires
+            const secondInfo = [];
+            if (data.kilometrage) secondInfo.push(`🛣️ ${data.kilometrage}`);
+            if (data.couleur) secondInfo.push(`🎨 ${data.couleur}`);
+
+            if (secondInfo.length > 0) {
+                ctx.fillStyle = template.textColor;
+                ctx.fillText(secondInfo.join('  •  '), centerX, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // État et propriétaires
+            const statusInfo = [];
+            if (data.etat) statusInfo.push(`✨ ${data.etat}`);
+            if (data.proprietaires) statusInfo.push(`👤 ${data.proprietaires}`);
+
+            if (statusInfo.length > 0) {
+                ctx.fillStyle = template.accentColor;
+                ctx.fillText(statusInfo.join('  •  '), centerX, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // Localisation centrée
+            if (data.localisation) {
+                ctx.fillStyle = template.textColor;
+                ctx.fillText(`📍 ${data.localisation}`, centerX, currentY);
+                currentY += config.lineHeight;
+            }
+
+            return currentY;
+        }
+
+        // Layout asymétrique (Motors Luxury)
+        function drawAsymmetricLayout(ctx, template, config, data, leftMargin, rightMargin, startY) {
+            let currentY = startY;
+            const centerPoint = leftMargin + (rightMargin - leftMargin) * 0.6;
+            
+            ctx.font = `${config.textSize}px Inter, Arial`;
+
+            // Colonne gauche (60%)
+            ctx.textAlign = 'left';
+            ctx.fillStyle = template.accentColor;
+            if (data.annee) {
+                ctx.fillText(`📅 ${data.annee}`, leftMargin, currentY);
+            }
+            if (data.carburant) {
+                ctx.fillText(`⛽ ${data.carburant}`, leftMargin, currentY + config.lineHeight);
+            }
+
+            // Colonne droite (40%)
+            ctx.textAlign = 'right';
+            ctx.fillStyle = template.textColor;
+            if (data.transmission) {
+                ctx.fillText(`⚙️ ${data.transmission}`, rightMargin, currentY);
+            }
+            if (data.kilometrage) {
+                ctx.fillText(`🛣️ ${data.kilometrage}`, rightMargin, currentY + config.lineHeight);
+            }
+
+            currentY += config.lineHeight * 2 + config.spacing;
+
+            // Ligne complète pour l'état
+            ctx.textAlign = 'left';
+            ctx.fillStyle = template.accentColor;
+            if (data.etat && data.couleur) {
+                ctx.fillText(`✨ ${data.etat}  •  🎨 ${data.couleur}`, leftMargin, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // Propriétaires et localisation
+            if (data.proprietaires && data.localisation) {
+                ctx.fillStyle = template.textColor;
+                ctx.fillText(`👤 ${data.proprietaires}  •  📍 ${data.localisation}`, leftMargin, currentY);
+                currentY += config.lineHeight;
+            }
+
+            return currentY;
+        }
+
+        // Layout dynamique (Speed Center)
+        function drawDynamicLayout(ctx, template, config, data, leftMargin, rightMargin, startY) {
+            let currentY = startY;
+            ctx.font = `bold ${config.textSize}px Inter, Arial`;
+            ctx.textAlign = 'left';
+
+            // Style énergique avec espacement dynamique
+            const items = [
+                { text: `📅 ${data.annee}`, color: template.accentColor, show: data.annee },
+                { text: `⛽ ${data.carburant}`, color: template.textColor, show: data.carburant },
+                { text: `⚙️ ${data.transmission}`, color: template.accentColor, show: data.transmission },
+                { text: `🛣️ ${data.kilometrage}`, color: template.textColor, show: data.kilometrage },
+                { text: `🎨 ${data.couleur}`, color: template.accentColor, show: data.couleur },
+                { text: `✨ ${data.etat}`, color: template.textColor, show: data.etat },
+                { text: `👤 ${data.proprietaires}`, color: template.accentColor, show: data.proprietaires },
+                { text: `📍 ${data.localisation}`, color: template.textColor, show: data.localisation }
+            ];
+
+            let itemsPerLine = 2;
+            let currentLineItems = 0;
+            let currentX = leftMargin;
+            const itemWidth = (rightMargin - leftMargin) / itemsPerLine;
+
+            items.forEach(item => {
+                if (item.show) {
+                    ctx.fillStyle = item.color;
+                    ctx.fillText(item.text, currentX, currentY);
+                    
+                    currentLineItems++;
+                    currentX += itemWidth;
+                    
+                    if (currentLineItems >= itemsPerLine) {
+                        currentY += config.lineHeight;
+                        currentX = leftMargin;
+                        currentLineItems = 0;
+                    }
+                }
+            });
+
+            if (currentLineItems > 0) {
+                currentY += config.lineHeight;
+            }
+
+            return currentY;
+        }
+
+        // Layout traditionnel (Classic Auto)
+        function drawTraditionalLayout(ctx, template, config, data, leftMargin, rightMargin, startY) {
+            let currentY = startY;
+            ctx.font = `${config.textSize}px Inter, Arial`;
+            ctx.textAlign = 'left';
+
+            // Style classique avec séparateurs
+            const separator = '  |  ';
+            
+            // Ligne technique
+            const techInfo = [];
+            if (data.annee) techInfo.push(`📅 ${data.annee}`);
+            if (data.carburant) techInfo.push(`⛽ ${data.carburant}`);
+            if (data.transmission) techInfo.push(`⚙️ ${data.transmission}`);
+            
+            if (techInfo.length > 0) {
+                ctx.fillStyle = template.accentColor;
+                ctx.fillText(techInfo.join(separator), leftMargin, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // Ligne état
+            const stateInfo = [];
+            if (data.kilometrage) stateInfo.push(`🛣️ ${data.kilometrage}`);
+            if (data.etat) stateInfo.push(`✨ ${data.etat}`);
+            if (data.couleur) stateInfo.push(`🎨 ${data.couleur}`);
+            
+            if (stateInfo.length > 0) {
+                ctx.fillStyle = template.textColor;
+                ctx.fillText(stateInfo.join(separator), leftMargin, currentY);
+                currentY += config.lineHeight;
+            }
+
+            // Ligne propriété
+            const ownerInfo = [];
+            if (data.proprietaires) ownerInfo.push(`👤 ${data.proprietaires}`);
+            if (data.localisation) ownerInfo.push(`📍 ${data.localisation}`);
+            
+            if (ownerInfo.length > 0) {
+                ctx.fillStyle = template.accentColor;
+                ctx.fillText(ownerInfo.join(separator), leftMargin, currentY);
+                currentY += config.lineHeight;
+            }
+
+            return currentY;
+        }
+
+        // Layout moderne (Urban Motors)
+        function drawModernLayout(ctx, template, config, data, leftMargin, rightMargin, startY) {
+            let currentY = startY;
+            ctx.font = `${config.textSize}px Inter, Arial`;
+
+            // Style moderne avec blocs d'information
+            const blockSpacing = config.spacing;
+            const blockHeight = config.lineHeight * 1.2;
+
+            // Bloc 1: Informations principales
+            ctx.fillStyle = template.accentColor + '20';
+            ctx.fillRect(leftMargin - 10, currentY - config.textSize, rightMargin - leftMargin + 20, blockHeight);
+            
+            ctx.textAlign = 'left';
+            ctx.fillStyle = template.accentColor;
+            const mainText = `📅 ${data.annee || ''}  ⛽ ${data.carburant || ''}  ⚙️ ${data.transmission || ''}`.replace(/\s+/g, ' ');
+            ctx.fillText(mainText, leftMargin, currentY);
+            currentY += blockHeight + blockSpacing;
+
+            // Bloc 2: État et caractéristiques
+            if (data.kilometrage || data.couleur || data.etat) {
+                ctx.fillStyle = template.textColor + '15';
+                ctx.fillRect(leftMargin - 10, currentY - config.textSize, rightMargin - leftMargin + 20, blockHeight);
+                
+                ctx.fillStyle = template.textColor;
+                const stateText = `🛣️ ${data.kilometrage || ''}  🎨 ${data.couleur || ''}  ✨ ${data.etat || ''}`.replace(/\s+/g, ' ');
+                ctx.fillText(stateText, leftMargin, currentY);
+                currentY += blockHeight + blockSpacing;
+            }
+
+            // Bloc 3: Localisation et propriétaires
+            if (data.localisation || data.proprietaires) {
+                ctx.fillStyle = template.accentColor + '15';
+                ctx.fillRect(leftMargin - 10, currentY - config.textSize, rightMargin - leftMargin + 20, blockHeight);
+                
+                ctx.fillStyle = template.accentColor;
+                const locationText = `📍 ${data.localisation || ''}  👤 ${data.proprietaires || ''}`.replace(/\s+/g, ' ');
+                ctx.fillText(locationText, leftMargin, currentY);
+                currentY += blockHeight;
+            }
+
+            return currentY;
+        }
+
+        // Fonction pour mettre en évidence le prix
+        function drawPriceHighlight(ctx, template, config, prix, leftMargin, rightMargin, y) {
+            if (!prix) return;
+
+            ctx.font = `bold ${config.priceSize}px Inter, Arial`;
+            
+            // Fond pour le prix selon le template
+            const priceText = `💰 ${prix}`;
+            const textWidth = ctx.measureText(priceText).width;
+            const padding = 20;
+            
+            if (template.name === 'Auto Elite' || template.name === 'Motors Luxury') {
+                // Prix centré avec fond élégant
+                const centerX = (leftMargin + rightMargin) / 2;
+                const bgX = centerX - (textWidth + padding) / 2;
+                
+                ctx.fillStyle = template.priceColor + '20';
+                ctx.fillRect(bgX - padding/2, y - config.priceSize - 5, textWidth + padding, config.priceSize + 15);
+                
+                ctx.textAlign = 'center';
+                ctx.fillStyle = template.priceColor;
+                ctx.fillText(priceText, centerX, y);
+            } else {
+                // Prix aligné à gauche avec effet
+                ctx.fillStyle = template.priceColor + '20';
+                ctx.fillRect(leftMargin - 10, y - config.priceSize - 5, textWidth + padding, config.priceSize + 15);
+                
+                ctx.textAlign = 'left';
+                ctx.fillStyle = template.priceColor;
+                ctx.fillText(priceText, leftMargin, y);
+                
+                // Effet de brillance pour certains templates
+                if (template.name === 'Speed Center' || template.name === 'Urban Motors') {
+                    ctx.strokeStyle = template.priceColor;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(leftMargin - 10, y - config.priceSize - 5, textWidth + padding, config.priceSize + 15);
+                }
+            }
+        }
+
+        // Fonction pour dessiner le pied de page
+        function drawFooter(ctx, template, format, canvas) {
+            const nomEntreprise = document.getElementById('nomEntreprise').value || 'AutoPro Sénégal';
+            const slogan = document.getElementById('slogan').value || 'Sécurité, Confiance & Élégance';
+            const telephone = document.getElementById('telephone').value || '+221 77 123 45 67';
+            const email = document.getElementById('email').value || 'contact@autopro.sn';
+            const adresse = document.getElementById('adresse').value || 'Dakar, Sénégal';
+            const whatsapp = document.getElementById('whatsapp').value || telephone;
+            
+            const formatInfo = formats[currentFormat];
+            const isVertical = formatInfo.alignment === 'vertical' || formatInfo.alignment === 'portrait';
+            const isBanner = formatInfo.alignment === 'banner';
+            const isPrint = formatInfo.category === 'Print';
+            
+            let mainFontSize, contactFontSize, footerY, contactSpacing;
+            
+            if (isPrint) {
+                mainFontSize = '32px';
+                contactFontSize = '24px';
+                footerY = canvas.height - 80;
+                contactSpacing = 35;
+            } else if (isVertical) {
+                mainFontSize = '20px';
+                contactFontSize = '16px';
+                footerY = canvas.height - 60;
+                contactSpacing = 25;
+            } else if (isBanner) {
+                mainFontSize = '16px';
+                contactFontSize = '14px';
+                footerY = canvas.height - 50;
+                contactSpacing = 20;
+            } else if (formatInfo.width > 1500) {
+                mainFontSize = '24px';
+                contactFontSize = '18px';
+                footerY = canvas.height - 70;
+                contactSpacing = 28;
+            } else {
+                mainFontSize = '14px';
+                contactFontSize = '12px';
+                footerY = canvas.height - 40;
+                contactSpacing = 18;
+            }
+            
+            ctx.font = `${mainFontSize} Arial`;
+            ctx.fillStyle = template.textColor;
+            ctx.textAlign = 'center';
+            
+            let footerText = '';
+            
+            // Construire le texte du pied de page selon les informations disponibles
+            if (slogan) {
+                footerText = `© 2025 ${nomEntreprise} – ${slogan}`;
+            } else {
+                footerText = `© 2025 ${nomEntreprise}`;
+            }
+            
+            // Ligne principale
+            ctx.fillText(footerText, canvas.width / 2, footerY);
+            
+            // Informations de contact en petite taille
+            if (telephone || email || whatsapp) {
+                ctx.font = `${contactFontSize} Arial`;
+                ctx.fillStyle = template.accentColor;
+                
+                let contactText = '';
+                if (telephone) contactText += `📞 ${telephone}`;
+                if (email) contactText += (contactText ? ' • ' : '') + `📧 ${email}`;
+                if (whatsapp && whatsapp !== telephone) contactText += (contactText ? ' • ' : '') + `📱 ${whatsapp}`;
+                
+                if (contactText) {
+                    ctx.fillText(contactText, canvas.width / 2, footerY + contactSpacing);
+                }
+            }
+        }
+
+        // Fonction pour appliquer le fond du template
+        function applyTemplateBackground(ctx, template, width, height) {
+            // Créer un dégradé basé sur le template
+            if (template.name === 'Carbon Fiber') {
+                // Effet fibre de carbone
+                ctx.fillStyle = '#1a202c';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Motif fibre de carbone
+                const pattern = ctx.createPattern(createCarbonFiberPattern(), 'repeat');
+                ctx.fillStyle = pattern;
+                ctx.fillRect(0, 0, width, height);
+            } else {
+                // Dégradé standard
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                
+                if (template.background.includes('linear-gradient')) {
+                    // Extraire les couleurs du dégradé CSS
+                    const colors = extractGradientColors(template.background);
+                    colors.forEach((color, index) => {
+                        gradient.addColorStop(index / (colors.length - 1), color);
+                    });
+                } else {
+                    gradient.addColorStop(0, template.background);
+                    gradient.addColorStop(1, template.background);
+                }
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+            }
+        }
+
+        // Fonction pour créer un motif fibre de carbone
+        function createCarbonFiberPattern() {
+            const patternCanvas = document.createElement('canvas');
+            patternCanvas.width = 20;
+            patternCanvas.height = 20;
+            const pCtx = patternCanvas.getContext('2d');
+            
+            pCtx.fillStyle = '#2d3748';
+            pCtx.fillRect(0, 0, 20, 20);
+            
+            pCtx.fillStyle = '#1a202c';
+            pCtx.fillRect(0, 0, 10, 10);
+            pCtx.fillRect(10, 10, 10, 10);
+            
+            return patternCanvas;
+        }
+
+        // Fonction pour extraire les couleurs d'un dégradé CSS
+        function extractGradientColors(gradientString) {
+            const matches = gradientString.match(/#[0-9a-fA-F]{6}/g);
+            return matches || ['#000000', '#333333'];
+        }
+
+        // Génération du QR Code
+        function generateQRCode() {
+            const canvas = document.getElementById('previewCanvas');
+            const ctx = canvas.getContext('2d');
+            const format = formats[currentFormat];
+            const template = templates[currentTemplate];
+            const formatInfo = formats[currentFormat];
+            let qrSize;
+            if (formatInfo.alignment === 'vertical' || formatInfo.alignment === 'portrait') {
+                qrSize = 120;
+            } else if (formatInfo.alignment === 'banner') {
+                qrSize = 100;
+            } else if (formatInfo.category === 'Print') {
+                qrSize = 200;
+            } else if (formatInfo.width > 1500) {
+                qrSize = 140;
+            } else {
+                qrSize = 80;
+            }
+            const qrX = canvas.width - qrSize - 30;
+            const qrY = canvas.height - qrSize - 30;
+
+            // Si un QR code est importé, l'utiliser directement
+            if (qrCodeImage) {
+                // Fond avec couleur du template
+                const qrBackgroundColor = template.name === 'Elegant White' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.95)';
+                ctx.fillStyle = qrBackgroundColor;
+                ctx.fillRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+                
+                // Bordure avec couleur d'accent
+                ctx.strokeStyle = template.borderColor;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+                
+                // Dessiner le QR code importé
+                ctx.drawImage(qrCodeImage, qrX, qrY, qrSize, qrSize);
+                return;
+            }
+
+            // Sinon, générer un QR code à partir de l'URL
+            const qrUrl = document.getElementById('qrUrl').value;
+            if (!qrUrl) return;
+
+            // Créer un canvas temporaire pour le QR code
+            const qrCanvas = document.createElement('canvas');
+            
+            QRCode.toCanvas(qrCanvas, qrUrl, {
+                width: qrSize,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            }, function (error) {
+                if (!error) {
+                    // Fond avec couleur du template
+                    const qrBackgroundColor = template.name === 'Elegant White' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.95)';
+                    ctx.fillStyle = qrBackgroundColor;
+                    ctx.fillRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+                    
+                    // Bordure avec couleur d'accent
+                    ctx.strokeStyle = template.borderColor;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(qrX - 10, qrY - 10, qrSize + 20, qrSize + 20);
+                    
+                    ctx.drawImage(qrCanvas, qrX, qrY);
+                }
+            });
+        }
+
+        // Téléchargement de la fiche courante
+        function downloadCurrent() {
+            if (uploadedImages.length === 0) {
+                alert('Veuillez d\'abord charger des images du véhicule.');
+                return;
+            }
+
+            const canvas = document.getElementById('previewCanvas');
+            const format = formats[currentFormat];
+            const marque = document.getElementById('marque').value || 'Vehicule';
+            const modele = document.getElementById('modele').value || 'Modele';
+            
+            const link = document.createElement('a');
+            link.download = `fiche_${currentTemplate}_${currentFormat}_${marque}_${modele}_${currentImageIndex + 1}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        }
+
+        // Téléchargement de tous les formats
+        async function downloadAllFormats() {
+            if (uploadedImages.length === 0) {
+                alert('Veuillez d\'abord charger des images du véhicule.');
+                return;
+            }
+
+            const originalFormat = currentFormat;
+            const originalImageIndex = currentImageIndex;
+            const originalTemplate = currentTemplate;
+
+            for (const templateKey of Object.keys(templates)) {
+                for (const formatKey of Object.keys(formats)) {
+                    for (let imageIndex = 0; imageIndex < uploadedImages.length; imageIndex++) {
+                        currentTemplate = templateKey;
+                        currentFormat = formatKey;
+                        currentImageIndex = imageIndex;
+                    
+                    // Mettre à jour le canvas et générer l'aperçu
+                    updateCanvasSize();
+                    generatePreview();
+                    
+                    // Attendre que le rendu soit terminé
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Télécharger
+                    const canvas = document.getElementById('previewCanvas');
+                    const marque = document.getElementById('marque').value || 'Vehicule';
+                    const modele = document.getElementById('modele').value || 'Modele';
+                    
+                        const link = document.createElement('a');
+                        link.download = `fiche_${templateKey}_${formatKey}_${marque}_${modele}_${imageIndex + 1}.jpg`;
+                        link.href = canvas.toDataURL('image/jpeg', 0.9);
+                        link.click();
+                        
+                        // Petite pause entre les téléchargements
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                }
+            }
+
+            // Restaurer l'état original
+            currentTemplate = originalTemplate;
+            currentFormat = originalFormat;
+            currentImageIndex = originalImageIndex;
+            updateCanvasSize();
+            generatePreview();
+            
+            // Mettre à jour l'interface
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.template === currentTemplate);
+            });
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.format === currentFormat);
+            });
+        }
+
+        // Base de données des modèles par marque
+        const modelsByBrand = {
+            'Audi': ['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'Q2', 'Q3', 'Q5', 'Q7', 'Q8', 'TT', 'R8', 'e-tron GT'],
+            'BMW': ['Série 1', 'Série 2', 'Série 3', 'Série 4', 'Série 5', 'Série 6', 'Série 7', 'Série 8', 'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'Z4', 'i3', 'i4', 'iX'],
+            'Mercedes-Benz': ['Classe A', 'Classe B', 'Classe C', 'Classe E', 'Classe S', 'CLA', 'CLS', 'GLA', 'GLB', 'GLC', 'GLE', 'GLS', 'G-Class', 'SL', 'AMG GT', 'EQC', 'EQS'],
+            'Volkswagen': ['Polo', 'Golf', 'Jetta', 'Passat', 'Arteon', 'T-Cross', 'T-Roc', 'Tiguan', 'Touareg', 'ID.3', 'ID.4', 'ID.Buzz'],
+            'Toyota': ['Yaris', 'Corolla', 'Camry', 'Prius', 'C-HR', 'RAV4', 'Highlander', 'Land Cruiser', 'Hilux', 'Aygo', 'Avensis'],
+            'Honda': ['Civic', 'Accord', 'CR-V', 'HR-V', 'Pilot', 'Ridgeline', 'Insight', 'Fit', 'Passport'],
+            'Nissan': ['Micra', 'Sentra', 'Altima', 'Maxima', 'Juke', 'Qashqai', 'X-Trail', 'Murano', 'Pathfinder', 'Leaf', '370Z'],
+            'Ford': ['Fiesta', 'Focus', 'Mondeo', 'Mustang', 'EcoSport', 'Kuga', 'Edge', 'Explorer', 'F-150', 'Ranger', 'Bronco'],
+            'Peugeot': ['108', '208', '308', '508', '2008', '3008', '5008', 'Partner', 'Expert', 'Boxer', 'e-208', 'e-2008'],
+            'Renault': ['Twingo', 'Clio', 'Mégane', 'Talisman', 'Captur', 'Kadjar', 'Koleos', 'Scenic', 'Espace', 'ZOE', 'Arkana'],
+            'Citroën': ['C1', 'C3', 'C4', 'C5', 'C3 Aircross', 'C5 Aircross', 'Berlingo', 'SpaceTourer', 'Jumper', 'ë-C4'],
+            'Hyundai': ['i10', 'i20', 'i30', 'Elantra', 'Sonata', 'Kona', 'Tucson', 'Santa Fe', 'Palisade', 'Ioniq', 'Ioniq 5'],
+            'Kia': ['Picanto', 'Rio', 'Ceed', 'Forte', 'Optima', 'Stonic', 'Sportage', 'Sorento', 'Telluride', 'Niro', 'EV6'],
+            'Mazda': ['Mazda2', 'Mazda3', 'Mazda6', 'CX-3', 'CX-30', 'CX-5', 'CX-9', 'MX-5', 'MX-30'],
+            'Subaru': ['Impreza', 'Legacy', 'Outback', 'Forester', 'Ascent', 'WRX', 'BRZ', 'Crosstrek'],
+            'Lexus': ['IS', 'ES', 'GS', 'LS', 'UX', 'NX', 'RX', 'GX', 'LX', 'LC', 'RC'],
+            'Infiniti': ['Q50', 'Q60', 'QX50', 'QX60', 'QX80'],
+            'Acura': ['ILX', 'TLX', 'RLX', 'RDX', 'MDX', 'NSX'],
+            'Volvo': ['S60', 'S90', 'V60', 'V90', 'XC40', 'XC60', 'XC90', 'C40', 'EX30'],
+            'Jaguar': ['XE', 'XF', 'XJ', 'F-Type', 'E-Pace', 'F-Pace', 'I-Pace'],
+            'Land Rover': ['Defender', 'Discovery', 'Discovery Sport', 'Range Rover Evoque', 'Range Rover Velar', 'Range Rover Sport', 'Range Rover'],
+            'Porsche': ['911', 'Boxster', 'Cayman', 'Panamera', 'Macan', 'Cayenne', 'Taycan'],
+            'Ferrari': ['488', 'F8', 'SF90', 'Roma', 'Portofino', 'GTC4Lusso', 'LaFerrari'],
+            'Lamborghini': ['Huracán', 'Aventador', 'Urus'],
+            'Bentley': ['Continental', 'Flying Spur', 'Bentayga', 'Mulsanne'],
+            'Rolls-Royce': ['Ghost', 'Phantom', 'Wraith', 'Dawn', 'Cullinan'],
+            'Maserati': ['Ghibli', 'Quattroporte', 'Levante', 'GranTurismo', 'MC20'],
+            'Aston Martin': ['Vantage', 'DB11', 'DBS', 'DBX'],
+            'McLaren': ['570S', '720S', '765LT', 'Artura', 'GT'],
+            'Tesla': ['Model 3', 'Model S', 'Model X', 'Model Y', 'Cybertruck', 'Roadster']
+        };
+
+        // Fonction pour mettre à jour les modèles selon la marque
+        function updateModels() {
+            const marqueSelect = document.getElementById('marque');
+            const modeleSelect = document.getElementById('modele');
+            const marqueCustom = document.getElementById('marqueCustom');
+            
+            if (marqueSelect.value === 'custom') {
+                marqueCustom.style.display = 'block';
+                modeleSelect.innerHTML = '<option value="">Sélectionner le modèle</option><option value="custom">✏️ Saisir manuellement</option>';
+            } else {
+                marqueCustom.style.display = 'none';
+                
+                if (marqueSelect.value && modelsByBrand[marqueSelect.value]) {
+                    modeleSelect.innerHTML = '<option value="">Sélectionner le modèle</option>';
+                    modelsByBrand[marqueSelect.value].forEach(model => {
+                        modeleSelect.innerHTML += `<option value="${model}">${model}</option>`;
+                    });
+                    modeleSelect.innerHTML += '<option value="custom">✏️ Saisir manuellement</option>';
+                } else {
+                    modeleSelect.innerHTML = '<option value="">Sélectionner d\'abord une marque</option><option value="custom">✏️ Saisir manuellement</option>';
+                }
+            }
+            generatePreview();
+        }
+
+        // Fonction pour gérer les champs personnalisés
+        function handleCustomFields() {
+            const fields = ['marque', 'modele', 'annee', 'kilometrage', 'carburant', 'transmission', 'couleur', 'localisation', 'etat', 'proprietaires'];
+            
+            fields.forEach(field => {
+                const select = document.getElementById(field);
+                const customInput = document.getElementById(field + 'Custom');
+                
+                if (select && customInput) {
+                    select.addEventListener('change', function() {
+                        if (this.value === 'custom') {
+                            customInput.style.display = 'block';
+                            customInput.focus();
+                        } else {
+                            customInput.style.display = 'none';
+                            customInput.value = '';
+                        }
+                        generatePreview();
+                    });
+                    
+                    customInput.addEventListener('input', generatePreview);
+                }
+            });
+        }
+
+        // Fonction pour obtenir la valeur effective d'un champ (select ou custom)
+        function getFieldValue(fieldName) {
+            const select = document.getElementById(fieldName);
+            const customInput = document.getElementById(fieldName + 'Custom');
+            
+            if (select && select.value === 'custom' && customInput) {
+                return customInput.value;
+            } else if (select) {
+                return select.value;
+            }
+            return '';
+        }
+
+        // Génération automatique de l'aperçu lors des changements - TEMPS RÉEL AMÉLIORÉ
+        function setupRealTimeUpdates() {
+            // Tous les champs de saisie
+            ['prix', 'nomEntreprise', 'slogan', 'telephone', 'email', 'adresse', 'siteWeb', 'whatsapp', 'qrUrl', 'citation', 'auteurCitation'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', () => {
+                        clearTimeout(window.previewTimeout);
+                        window.previewTimeout = setTimeout(generatePreview, 50);
+                    });
+                    element.addEventListener('change', generatePreview);
+                }
+            });
+
+            // Tous les selects
+            ['marque', 'modele', 'annee', 'kilometrage', 'carburant', 'transmission', 'couleur', 'localisation', 'etat', 'proprietaires', 'styleCitation'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', () => {
+                        generatePreview();
+                    });
+                }
+            });
+
+            // Tous les champs personnalisés
+            ['marqueCustom', 'modeleCustom', 'anneeCustom', 'kilometrageCustom', 'carburantCustom', 'transmissionCustom', 'couleurCustom', 'localisationCustom', 'etatCustom', 'proprietairesCustom'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', () => {
+                        clearTimeout(window.previewTimeout);
+                        window.previewTimeout = setTimeout(generatePreview, 50);
+                    });
+                }
+            });
+        }
+
+        // Vider le QR code importé quand on saisit une URL
+        document.getElementById('qrUrl').addEventListener('input', function() {
+            if (this.value && qrCodeImage) {
+                qrCodeImage = null;
+                document.getElementById('qrPreview').innerHTML = '';
+                document.getElementById('qrCodeFile').value = '';
+            }
+        });
+
+        // Initialisation complète
+        updateCanvasSize();
+        updateStats();
+        handleCustomFields();
+        setupRealTimeUpdates();
+        
+        // Générer un aperçu initial avec données par défaut
+        setTimeout(() => {
+            generatePreview();
+        }, 200);
+        
+        // Forcer une mise à jour après le chargement complet
+        window.addEventListener('load', () => {
+            setTimeout(generatePreview, 300);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'979e44a1e3cac79d',t:'MTc1Njk5NzEwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
